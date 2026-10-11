@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Соседи — найди соседа для совместной аренды</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Шапка сайта -->
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <!-- домик как в логотипе команды 007 -->
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+
+      <nav class="menu" id="menu">
+        <a href="catalog.html">Анкеты</a>
+        <a href="#how">Как это работает</a>
+        <a href="about.html">О проекте</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+
+      <!-- кнопка меню, видна только на телефоне -->
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Первый экран -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <div class="hero__text">
+          <p class="label">Для студентов, которые снимают жильё вместе</p>
+          <h1>Найди соседа, с которым будет спокойно жить</h1>
+          <p class="hero__desc">
+            Отвечаешь на 9 вопросов про быт: во сколько ложишься, как часто зовёшь гостей,
+            нужна ли тишина вечером. Мы показываем людей с похожими привычками и процент совместимости.
+          </p>
+          <div class="hero__buttons">
+            <a href="anketa.html" class="btn">Создать анкету</a>
+            <a href="catalog.html" class="btn btn--light">Посмотреть анкеты</a>
+          </div>
+          <p class="hero__note">Telegram видят только те, с кем интерес взаимный</p>
+        </div>
+
+        <!-- пример карточки, чтобы сразу было понятно, что за сервис -->
+        <div class="hero__card">
+          <div class="card-top">
+            <div class="person">
+              <span class="avatar">А</span>
+              <div>
+                <p class="person__name">Аня, 2 курс</p>
+                <p class="person__info">Квартира · м. Тульская</p>
+              </div>
+            </div>
+            <div class="match">
+              <span class="match__num">83%</span>
+              <span class="match__text">совпадение</span>
+            </div>
+          </div>
+          <div class="progress"><div class="progress__bar" style="width: 83%"></div></div>
+          <ul class="checks">
+            <li>Ложится до часу ночи, как ты</li>
+            <li>Не курит</li>
+            <li>Гостей зовёт иногда</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Как это работает -->
+    <section class="section section--white" id="how">
+      <div class="container">
+        <h2>Как это работает</h2>
+        <div class="steps">
+          <div class="step">
+            <span class="step__num">1</span>
+            <h3>Заполняешь анкету</h3>
+            <p>Минут пять. Вопросы только про быт и жильё, ничего личного.</p>
+          </div>
+          <div class="step">
+            <span class="step__num">2</span>
+            <h3>Смотришь совпадения</h3>
+            <p>У каждой анкеты есть процент совместимости и разбор: в чём вы похожи и о чём придётся договориться.</p>
+          </div>
+          <div class="step">
+            <span class="step__num">3</span>
+            <h3>Жмёшь «Интересно»</h3>
+            <p>Если человек ответит тем же, вы увидите Telegram друг друга. Дальше общаетесь там.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- О чём вопросы -->
+    <section class="section">
+      <div class="container">
+        <h2>О чём вопросы в анкете</h2>
+        <p class="section__desc">Их всего девять. По ответам и считается совместимость.</p>
+        <ul class="chips">
+          <li>Во сколько ложишься</li>
+          <li>Во сколько встаёшь</li>
+          <li>Как часто убираешься</li>
+          <li>Гости</li>
+          <li>Шум вечером</li>
+          <li>Курение</li>
+          <li>Животные</li>
+          <li>Сколько времени дома</li>
+          <li>Продукты и бытовые траты</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Безопасность -->
+    <section class="section section--white">
+      <div class="container">
+        <h2>Чтобы было спокойно</h2>
+        <div class="safety">
+          <div>
+            <h3>Контакт только по взаимности</h3>
+            <p>Пока вы оба не нажали «Интересно», Telegram никто не видит.</p>
+          </div>
+          <div>
+            <h3>Без лишних вопросов</h3>
+            <p>Не спрашиваем паспорт, адрес и прочее личное. Только то, что важно, когда живёшь вместе.</p>
+          </div>
+          <div>
+            <h3>Скрыть или пожаловаться</h3>
+            <p>Анкета не понравилась — скрой её. Что-то подозрительное — отправь жалобу.</p>
+          </div>
+          <div>
+            <h3>Анкету можно удалить</h3>
+            <p>Нашёл соседа или передумал — удаляешь анкету, и она пропадает из поиска.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Призыв в конце -->
+    <section class="section">
+      <div class="container">
+        <div class="cta">
+          <div>
+            <h2>Соседа лучше выбрать до заезда, а не после</h2>
+            <p>Анкета займёт пять минут.</p>
+          </div>
+          <a href="anketa.html" class="btn btn--white">Создать анкету</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="about.html">О проекте</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

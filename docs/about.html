@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>О проекте — Соседи</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+      <nav class="menu" id="menu">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html#how">Как это работает</a>
+        <a href="about.html" class="active">О проекте</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero hero--small">
+      <div class="container">
+        <h1>Зачем мы это делаем</h1>
+        <p class="about__lead">Искать соседа по объявлениям — лотерея. Про человека почти ничего не понятно, а что вы не уживаетесь, выясняется уже после заезда. Хотим, чтобы это было понятно заранее.</p>
+        <p class="about__lead about__lead--muted">Поэтому сначала сравниваем привычки, а уже потом знакомим.</p>
+      </div>
+    </section>
+
+    <section class="section section--white">
+      <div class="container about__formula">
+        <div>
+          <h2>Как считаем совместимость</h2>
+          <p>Берём ваши ответы на 9 вопросов анкеты и сравниваем по одному.</p>
+          <ul>
+            <li>Одинаковый ответ — 1 балл</li>
+            <li>Соседние варианты, например «раз в неделю» и «каждый день понемногу» — 0,5 балла</li>
+            <li>Противоположные ответы — 0</li>
+          </ul>
+          <p>Баллы складываем и делим на 9. Это и есть процент.</p>
+        </div>
+        <div class="example">
+          <p class="example__label">Пример: ты и Аня</p>
+          <p>7 одинаковых ответов + 1 соседний</p>
+          <p>7 + 0,5 = 7,5 из 9</p>
+          <p class="big-percent">83%</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Правила</h2>
+        <ol class="rules">
+          <li>
+            <span class="rules__num">01</span>
+            <h3>Отвечай честно</h3>
+            <p>Если приукрасить привычки, процент будет красивый, но жить потом всё равно с настоящими.</p>
+          </li>
+          <li>
+            <span class="rules__num">02</span>
+            <h3>Одна анкета на человека</h3>
+            <p>Фейки и чужие анкеты удаляем после жалобы.</p>
+          </li>
+          <li>
+            <span class="rules__num">03</span>
+            <h3>Не отправляй деньги заранее</h3>
+            <p>Залог и оплату обсуждайте только после встречи и просмотра жилья.</p>
+          </li>
+          <li>
+            <span class="rules__num">04</span>
+            <h3>Что-то не так — жалуйся</h3>
+            <p>Кнопка «Пожаловаться» есть в каждой анкете.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section section--white">
+      <div class="container container--narrow">
+        <h2>Частые вопросы</h2>
+        <div class="faq">
+          <details open>
+            <summary>Это платно?</summary>
+            <p>Нет. Это учебный проект, пользоваться можно бесплатно.</p>
+          </details>
+          <details>
+            <summary>Кто видит мой Telegram?</summary>
+            <p>Только человек, с которым интерес оказался взаимным. Остальные видят анкету без контактов.</p>
+          </details>
+          <details>
+            <summary>Почему нет чата?</summary>
+            <p>Не хотим хранить вашу переписку. Договориться и встретиться проще в Telegram.</p>
+          </details>
+          <details>
+            <summary>Как удалить анкету?</summary>
+            <p>Открой свою анкету и нажми «Удалить анкету». Она сразу пропадёт из поиска.</p>
+          </details>
+          <details>
+            <summary>Что будет после жалобы?</summary>
+            <p>Мы посмотрим анкету. Если она нарушает правила, скроем её.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="team">
+          <!-- логотип команды 007 -->
+          <svg width="150" height="65" viewBox="22 20 460 200">
+            <ellipse cx="110" cy="120" rx="34" ry="42" fill="none" stroke="#0a2a7a" stroke-width="28"/>
+            <path d="M214 170 V108 L250 76 L286 108 V170 Z" fill="none" stroke="#2f7bff" stroke-width="28" stroke-linejoin="round"/>
+            <path d="M336 78 H428 L374 170" fill="none" stroke="#0a2a7a" stroke-width="28" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <h2>Кто делает</h2>
+            <p>Команда 007 из проекта «Первый БИТ». Нас семь человек вместе с ментором.</p>
+            <p class="team__contact">Написать нам: [TELEGRAM КОМАНДЫ]</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html">Главная</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/about.js"></script>
+</body>
+</html>

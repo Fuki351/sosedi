@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Анкета — Соседи</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+      <nav class="menu" id="menu">
+        <a href="catalog.html" class="active">Анкеты</a>
+        <a href="index.html#how">Как это работает</a>
+        <a href="about.html">О проекте</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <a href="catalog.html" class="back-link">← Все анкеты</a>
+      <p class="form-error" id="load-error" hidden></p>
+
+      <!-- показывается, если нажали «Скрыть» -->
+      <div class="notice" id="hidden-block" hidden>
+        <h1>Анкета скрыта</h1>
+        <p>Ты больше не увидишь эту анкету в поиске, а человек не узнает, что ты её скрыл.</p>
+        <div class="notice__buttons">
+          <a href="catalog.html" class="btn">К анкетам</a>
+          <button type="button" class="btn btn--light" id="unhide-btn">Вернуть анкету</button>
+        </div>
+      </div>
+
+      <!-- заполняет js/profile.js данными с сервера -->
+      <div class="profile" id="profile" hidden>
+        <section class="profile__card">
+          <div class="person">
+            <span class="avatar avatar--big" id="p-avatar"></span>
+            <div>
+              <div class="profile__name-row">
+                <h1 id="p-name"></h1>
+              </div>
+              <p class="person__info" id="p-course"></p>
+            </div>
+          </div>
+
+          <dl class="profile__info">
+            <div><dt>Ищет</dt><dd id="p-housing"></dd></div>
+            <div><dt>Бюджет</dt><dd id="p-budget"></dd></div>
+            <div><dt>Где</dt><dd id="p-place"></dd></div>
+            <div><dt>Заезд</dt><dd id="p-when"></dd></div>
+          </dl>
+
+          <h2 class="profile__subtitle">О себе</h2>
+          <p id="p-about"></p>
+
+          <div class="profile__actions" id="actions">
+            <button type="button" class="btn" id="interest-btn">Интересно</button>
+
+            <div class="status status--blue" id="sent-block" hidden>
+              <p><b>Интерес отправлен</b></p>
+              <p>Если человек тоже нажмёт «Интересно», здесь появится его Telegram.</p>
+            </div>
+
+            <div class="status status--green" id="mutual-block" hidden>
+              <p><b>Это взаимно!</b></p>
+              <p>Напиши в Telegram: <b id="p-telegram"></b></p>
+              <p class="status__small">Контакт открылся, потому что вы оба отметили интерес.</p>
+            </div>
+
+            <p class="form-error" id="action-error" hidden></p>
+
+            <div class="profile__small-buttons">
+              <button type="button" class="btn btn--light" id="hide-btn">Скрыть</button>
+              <button type="button" class="btn btn--danger" id="report-btn">Пожаловаться</button>
+            </div>
+          </div>
+
+          <p class="status status--blue" id="mine-block" hidden>Это твоя анкета. Удалить её можно в разделе <a href="my.html">«Мои отметки»</a>.</p>
+
+          <!-- форма жалобы -->
+          <form class="report" id="report-form" hidden>
+            <fieldset>
+              <legend>Что не так с анкетой?</legend>
+              <label class="checkbox"><input type="radio" name="reason" value="fake"> Похоже на фейк</label>
+              <label class="checkbox"><input type="radio" name="reason" value="rude"> Грубость или оскорбления</label>
+              <label class="checkbox"><input type="radio" name="reason" value="spam"> Реклама или спам</label>
+              <label class="checkbox"><input type="radio" name="reason" value="other"> Другое</label>
+            </fieldset>
+            <p class="form-error" id="report-error" hidden>Выбери причину</p>
+            <div class="report__buttons">
+              <button type="submit" class="btn btn--red">Отправить жалобу</button>
+              <button type="button" class="btn btn--light" id="report-cancel">Отмена</button>
+            </div>
+          </form>
+          <p class="status status--gray" id="report-done" hidden>Спасибо, жалоба отправлена. Мы посмотрим анкету и скроем её, если она нарушает правила.</p>
+        </section>
+
+        <!-- правая колонка: совместимость -->
+        <section class="profile__match">
+          <div id="match-block" hidden>
+            <div class="profile__match-top">
+              <div>
+                <h2>Совместимость</h2>
+                <p class="person__info" id="match-summary"></p>
+              </div>
+              <p class="big-percent" id="match-percent"></p>
+            </div>
+            <div class="progress"><div class="progress__bar" id="match-bar"></div></div>
+
+            <div class="table-wrap">
+              <table class="compare">
+                <thead>
+                  <tr>
+                    <th>Вопрос</th>
+                    <th>Ты</th>
+                    <th id="other-name">Он(а)</th>
+                    <th>Итог</th>
+                  </tr>
+                </thead>
+                <tbody id="compare-rows"></tbody>
+              </table>
+            </div>
+            <p class="profile__how">Процент считает сервер: совпадение — 1 балл, похожий ответ — 0,5, разный — 0. Сумму делим на 9. <a href="about.html">Подробнее</a></p>
+          </div>
+
+          <div id="match-login" hidden>
+            <h2>Совместимость</h2>
+            <p class="person__info" id="match-login-text">Войди, чтобы увидеть, насколько вы подходите друг другу.</p>
+            <a href="login.html" class="btn match-login__btn" id="match-login-btn">Войти</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="about.html">О проекте</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Анкета — Соседи</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+      <nav class="menu" id="menu">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html#how">Как это работает</a>
+        <a href="about.html">О проекте</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+
+      <!-- сама анкета, 4 шага -->
+      <div id="form-block">
+        <h1 class="page__title">Анкета</h1>
+        <p class="page__desc">Шаг <span id="step-number">1</span> из 4 · займёт минут пять</p>
+        <p class="info-bar" id="login-hint" hidden>Чтобы опубликовать анкету, нужно войти. <a href="login.html?next=anketa.html">Войти</a></p>
+
+        <!-- полоски шагов -->
+        <ol class="stepper">
+          <li class="stepper__item stepper__item--active">О себе</li>
+          <li class="stepper__item">Привычки</li>
+          <li class="stepper__item">Жильё</li>
+          <li class="stepper__item">Проверка</li>
+        </ol>
+
+        <div class="form-layout">
+          <form class="form-card" id="anketa-form" novalidate>
+
+            <!-- Шаг 1 -->
+            <div class="form-step" data-step="1">
+              <h2>О себе</h2>
+              <label class="field">
+                Как тебя зовут
+                <input type="text" id="name" placeholder="Например, Аня" maxlength="40">
+              </label>
+
+              <fieldset class="question">
+                <legend>Курс</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="course" value="1"><span>1</span></label>
+                  <label class="chip"><input type="radio" name="course" value="2"><span>2</span></label>
+                  <label class="chip"><input type="radio" name="course" value="3"><span>3</span></label>
+                  <label class="chip"><input type="radio" name="course" value="4"><span>4</span></label>
+                  <label class="chip"><input type="radio" name="course" value="5"><span>5–6</span></label>
+                </div>
+              </fieldset>
+
+              <label class="field">
+                Telegram
+                <input type="text" id="telegram" placeholder="@username" maxlength="40">
+                <span class="field__hint">Его увидит только тот, с кем интерес окажется взаимным.</span>
+              </label>
+
+              <label class="field">
+                Пара слов о себе <span class="field__optional">(можно пропустить)</span>
+                <textarea id="about" rows="3" maxlength="200" placeholder="Где учишься, чем занимаешься вечером, что важно в соседе"></textarea>
+              </label>
+            </div>
+
+            <!-- Шаг 2 -->
+            <div class="form-step" data-step="2" hidden>
+              <div class="form-step__top">
+                <h2>Привычки</h2>
+                <p class="counter">Ответов: <span id="answered">0</span> из 9</p>
+              </div>
+              <p class="form-step__desc">Отвечай как есть. Чем честнее ответы, тем точнее совместимость.</p>
+
+              <fieldset class="question">
+                <legend>1. Во сколько обычно ложишься?</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q1" value="0"><span>До 23:00</span></label>
+                  <label class="chip"><input type="radio" name="q1" value="1"><span>23:00–01:00</span></label>
+                  <label class="chip"><input type="radio" name="q1" value="2"><span>После 01:00</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>2. Во сколько встаёшь в будни?</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q2" value="0"><span>До 8:00</span></label>
+                  <label class="chip"><input type="radio" name="q2" value="1"><span>8:00–10:00</span></label>
+                  <label class="chip"><input type="radio" name="q2" value="2"><span>После 10:00</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>3. Как часто убираешься?</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q3" value="0"><span>Каждый день понемногу</span></label>
+                  <label class="chip"><input type="radio" name="q3" value="1"><span>Раз в неделю</span></label>
+                  <label class="chip"><input type="radio" name="q3" value="2"><span>Когда накопится</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>4. Гости дома</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q4" value="0"><span>Почти никогда</span></label>
+                  <label class="chip"><input type="radio" name="q4" value="1"><span>Иногда, по договорённости</span></label>
+                  <label class="chip"><input type="radio" name="q4" value="2"><span>Часто</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>5. Шум вечером</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q5" value="0"><span>Нужна тишина</span></label>
+                  <label class="chip"><input type="radio" name="q5" value="1"><span>Музыка в наушниках</span></label>
+                  <label class="chip"><input type="radio" name="q5" value="2"><span>Громко — нормально</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>6. Курение</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q6" value="0"><span>Не курю и против</span></label>
+                  <label class="chip"><input type="radio" name="q6" value="1"><span>Не курю, но не против</span></label>
+                  <label class="chip"><input type="radio" name="q6" value="2"><span>Курю</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>7. Домашние животные</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q7" value="0"><span>Есть питомец</span></label>
+                  <label class="chip"><input type="radio" name="q7" value="1"><span>Нет, но не против</span></label>
+                  <label class="chip"><input type="radio" name="q7" value="2"><span>Против</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>8. Сколько времени проводишь дома?</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q8" value="0"><span>Почти всё время</span></label>
+                  <label class="chip"><input type="radio" name="q8" value="1"><span>В основном вечером</span></label>
+                  <label class="chip"><input type="radio" name="q8" value="2"><span>Редко бываю</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>9. Продукты и бытовые траты</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="q9" value="0"><span>Покупаем вместе</span></label>
+                  <label class="chip"><input type="radio" name="q9" value="1"><span>Каждый сам</span></label>
+                  <label class="chip"><input type="radio" name="q9" value="2"><span>Договоримся</span></label>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- Шаг 3 -->
+            <div class="form-step" data-step="3" hidden>
+              <h2>Жильё</h2>
+
+              <fieldset class="question">
+                <legend>Что ищешь</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="housing" value="dorm"><span>Комнату в общежитии</span></label>
+                  <label class="chip"><input type="radio" name="housing" value="flat"><span>Квартиру вместе</span></label>
+                  <label class="chip"><input type="radio" name="housing" value="unknown"><span>Пока не знаю</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="question">
+                <legend>Бюджет на человека в месяц</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="budget" value="lt20"><span>До 20 000 ₽</span></label>
+                  <label class="chip"><input type="radio" name="budget" value="20to30"><span>20–30 000 ₽</span></label>
+                  <label class="chip"><input type="radio" name="budget" value="gt30"><span>Больше 30 000 ₽</span></label>
+                  <label class="chip"><input type="radio" name="budget" value="unknown"><span>Пока не знаю</span></label>
+                </div>
+              </fieldset>
+
+              <label class="field">
+                Где удобно жить
+                <input type="text" id="area" placeholder="Например, рядом с м. Тульская" maxlength="60">
+              </label>
+
+              <fieldset class="question">
+                <legend>Когда заезд</legend>
+                <div class="chips-row">
+                  <label class="chip"><input type="radio" name="when" value="Уже сейчас"><span>Уже сейчас</span></label>
+                  <label class="chip"><input type="radio" name="when" value="В течение месяца"><span>В течение месяца</span></label>
+                  <label class="chip"><input type="radio" name="when" value="Позже"><span>Позже</span></label>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- Шаг 4 -->
+            <div class="form-step" data-step="4" hidden>
+              <h2>Проверь и опубликуй</h2>
+              <dl class="summary">
+                <div><dt>Имя</dt><dd id="sum-name">—</dd></div>
+                <div><dt>Telegram</dt><dd id="sum-tg">—</dd></div>
+                <div><dt>Привычки</dt><dd id="sum-habits">—</dd></div>
+                <div><dt>Ищешь</dt><dd id="sum-housing">—</dd></div>
+              </dl>
+
+              <label class="checkbox">
+                <input type="checkbox" id="agree1">
+                Показывать мою анкету другим студентам в поиске
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="agree2">
+                Понимаю, что мой Telegram откроется только человеку, с которым интерес взаимный
+              </label>
+            </div>
+
+            <p class="form-error" id="form-error" hidden></p>
+
+            <div class="form-buttons">
+              <button type="button" class="btn btn--light" id="back-btn" hidden>Назад</button>
+              <button type="button" class="btn" id="next-btn">Дальше</button>
+            </div>
+          </form>
+
+          <aside class="side-note">
+            <h2>Зачем столько вопросов про быт</h2>
+            <p>Соседи чаще всего ссорятся из-за мелочей: один ложится в одиннадцать, другой в три ночи, у одного гости каждый вечер. Лучше узнать это до того, как вы подпишете договор.</p>
+            <p>Паспорт, адрес и фото мы не спрашиваем.</p>
+          </aside>
+        </div>
+      </div>
+
+      <!-- экран после публикации -->
+      <div class="done" id="done-block" hidden>
+        <div id="done-ok">
+          <div class="done__icon">✓</div>
+          <h1>Анкета опубликована</h1>
+          <p>Анкета сохранена на сервере, теперь тебя видно в поиске. Посмотри, кто подходит, и жми «Интересно» у тех, кто понравился.</p>
+          <div class="done__buttons">
+            <a href="catalog.html" class="btn">Смотреть анкеты</a>
+            <button type="button" class="btn btn--danger" id="delete-btn">Удалить анкету</button>
+          </div>
+          <div class="confirm" id="confirm-block" hidden>
+            <p><b>Точно удалить?</b></p>
+            <p>Анкета и ответы пропадут из поиска. Вернуть их не получится.</p>
+            <div class="confirm__buttons">
+              <button type="button" class="btn btn--red" id="confirm-yes">Да, удалить</button>
+              <button type="button" class="btn btn--light" id="confirm-no">Отмена</button>
+            </div>
+          </div>
+        </div>
+        <div id="done-deleted" hidden>
+          <h1>Анкета удалена</h1>
+          <p>Её больше нет в поиске. Если снова понадобится сосед, просто заполни анкету заново.</p>
+          <div class="done__buttons">
+            <a href="index.html" class="btn">На главную</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="about.html">О проекте</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/anketa.js"></script>
+</body>
+</html>

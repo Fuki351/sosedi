@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Анкеты — Соседи</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+      <nav class="menu" id="menu">
+        <a href="catalog.html" class="active">Анкеты</a>
+        <a href="index.html#how">Как это работает</a>
+        <a href="about.html">О проекте</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page__head">
+        <h1 class="page__title">Анкеты</h1>
+              </div>
+      <p class="page__desc">Сверху те, с кем у тебя больше всего совпадений.</p>
+      <p class="info-bar" id="login-hint" hidden>Войди, чтобы увидеть процент совместимости и отмечать анкеты. <a href="login.html">Войти</a></p>
+
+      <!-- на телефоне фильтры открываются по кнопке -->
+      <button type="button" class="btn btn--light filters-toggle" id="filters-toggle">Фильтры</button>
+
+      <div class="catalog">
+        <aside class="filters" id="filters">
+          <fieldset class="question">
+            <legend>Жильё</legend>
+            <div class="chips-row">
+              <label class="chip chip--small"><input type="radio" name="housing" value="all" checked><span>Все</span></label>
+              <label class="chip chip--small"><input type="radio" name="housing" value="dorm"><span>Общежитие</span></label>
+              <label class="chip chip--small"><input type="radio" name="housing" value="flat"><span>Квартира</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend>Бюджет на человека</legend>
+            <div class="chips-row">
+              <label class="chip chip--small"><input type="radio" name="budget" value="any" checked><span>Любой</span></label>
+              <label class="chip chip--small"><input type="radio" name="budget" value="lt20"><span>До 20 000 ₽</span></label>
+              <label class="chip chip--small"><input type="radio" name="budget" value="20to30"><span>20–30 000 ₽</span></label>
+              <label class="chip chip--small"><input type="radio" name="budget" value="gt30"><span>Больше 30 000 ₽</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend>Важно для меня</legend>
+            <label class="checkbox"><input type="checkbox" id="no-smoke"> Только некурящие</label>
+            <label class="checkbox"><input type="checkbox" id="no-pets"> Без животных</label>
+          </fieldset>
+
+          <button type="button" class="btn btn--light" id="reset-btn">Сбросить фильтры</button>
+        </aside>
+
+        <section class="results">
+          <p class="results__count" id="count">Загружаем анкеты…</p>
+          <p class="form-error" id="load-error" hidden></p>
+          <ul class="cards" id="cards">
+            <!-- карточки добавляет js/catalog.js -->
+          </ul>
+          <div class="results__more">
+            <button type="button" class="btn btn--light" id="more-btn">Показать ещё</button>
+          </div>
+          <div class="empty" id="empty" hidden>
+            <p class="empty__title">Никого не нашли</p>
+            <p>Попробуй убрать часть фильтров.</p>
+            <button type="button" class="btn" id="empty-reset">Сбросить фильтры</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="about.html">О проекте</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/catalog.js"></script>
+</body>
+</html>

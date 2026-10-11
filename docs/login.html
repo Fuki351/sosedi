@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход — Соседи</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+      <nav class="menu" id="menu">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html#how">Как это работает</a>
+        <a href="about.html">О проекте</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="login-card">
+        <h1 class="page__title">Вход</h1>
+        <p class="page__desc">Войди, чтобы видеть совместимость и отмечать анкеты.</p>
+
+        <form id="login-form" class="login-form" novalidate>
+          <label class="field">
+            Логин
+            <input type="text" id="login" autocomplete="username">
+          </label>
+          <label class="field">
+            Пароль
+            <input type="password" id="password" autocomplete="current-password">
+          </label>
+          <p class="form-error" id="login-error" hidden></p>
+          <button type="submit" class="btn" id="login-btn">Войти</button>
+        </form>
+
+        <div class="info-bar">
+          <p><b>Тестовые аккаунты</b></p>
+          <p><code>ivan</code> / <code>qwerty</code> — уже есть анкета</p>
+          <p><code>maria</code> / <code>maria1</code> — анкеты пока нет</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html">Главная</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

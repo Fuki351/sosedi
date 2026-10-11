@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои отметки — Соседи</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+      <nav class="menu" id="menu">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html#how">Как это работает</a>
+        <a href="about.html">О проекте</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="page__head">
+        <h1 class="page__title">Мои отметки</h1>
+      </div>
+      <p class="page__desc" id="my-who"></p>
+      <p class="form-error" id="load-error" hidden></p>
+
+      <div class="my-grid" id="my-content" hidden>
+        <section class="my-card">
+          <h2>Моя анкета</h2>
+          <div id="my-profile-yes" hidden>
+            <p>Анкета опубликована, её видно в поиске.</p>
+            <div class="my-card__buttons">
+              <a href="#" class="btn btn--light" id="my-profile-link">Открыть</a>
+              <button type="button" class="btn btn--danger" id="delete-btn">Удалить анкету</button>
+            </div>
+            <div class="confirm" id="confirm-block" hidden>
+              <p><b>Точно удалить?</b></p>
+              <p>Анкета и все отметки пропадут. Вернуть их не получится.</p>
+              <div class="confirm__buttons">
+                <button type="button" class="btn btn--red" id="confirm-yes">Да, удалить</button>
+                <button type="button" class="btn btn--light" id="confirm-no">Отмена</button>
+              </div>
+            </div>
+          </div>
+          <div id="my-profile-no" hidden>
+            <p>Анкеты пока нет. Без неё сервер не сможет посчитать совместимость.</p>
+            <div class="my-card__buttons">
+              <a href="anketa.html" class="btn">Заполнить анкету</a>
+            </div>
+          </div>
+          <p class="received" id="received"></p>
+        </section>
+
+        <section class="my-card my-card--wide">
+          <h2>Кого я отметил</h2>
+          <ul class="my-list" id="my-list"></ul>
+          <p class="my-empty" id="my-empty" hidden>Ты пока никого не отметил. <a href="catalog.html">Перейти к анкетам</a></p>
+        </section>
+      </div>
+
+      <button type="button" class="btn btn--light logout-btn" id="logout-btn">Выйти</button>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html">Главная</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/my.js"></script>
+</body>
+</html>
