@@ -12,9 +12,13 @@
 
 Нужен Python 3. Проверить: `python3 --version`
 
+Скачать проект: на странице репозитория зелёная кнопка **Code → Download ZIP**, распаковать. Или `git clone https://github.com/Fuki351/sosedi.git`
+
+Сайт без сервера (только страницы): https://fuki351.github.io/sosedi/
+
 ```bash
-# 1. перейти в папку проекта
-cd sosedi-backend
+# 1. перейти в папку проекта (после ZIP она называется sosedi-main)
+cd sosedi
 
 # 2. поставить библиотеки (один раз)
 pip3 install -r requirements.txt
@@ -46,7 +50,7 @@ python3 -m uvicorn main:app --reload --port 3000
 ## Структура
 
 ```
-sosedi-backend/
+sosedi/
 ├── main.py           — сервер: все адреса (эндпоинты) и логика
 ├── data.py           — данные в памяти: пользователи, анкеты, отметки, жалобы
 ├── requirements.txt  — какие библиотеки нужны
