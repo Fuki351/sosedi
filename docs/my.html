@@ -47,8 +47,10 @@
           <h2>Моя анкета</h2>
           <div id="my-profile-yes" hidden>
             <p>Анкета опубликована, её видно в поиске.</p>
+            <p class="status status--gold my-incomplete" id="my-incomplete" hidden>Появились новые вопросы. <a href="anketa.html?edit=1">Дополни анкету</a>, чтобы тебя находили через фильтры.</p>
             <div class="my-card__buttons">
               <a href="#" class="btn btn--light" id="my-profile-link">Открыть</a>
+              <a href="anketa.html?edit=1" class="btn">Редактировать</a>
               <button type="button" class="btn btn--danger" id="delete-btn">Удалить анкету</button>
             </div>
             <div class="confirm" id="confirm-block" hidden>

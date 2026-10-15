@@ -8,7 +8,7 @@ import secrets
 from datetime import datetime
 
 from sqlalchemy import (JSON, Boolean, DateTime, ForeignKey, Integer, LargeBinary,
-                        String, Text, create_engine, select)
+                        String, Text, create_engine, inspect, select, text)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 import data
@@ -60,6 +60,10 @@ class Profile(Base):
     when: Mapped[str] = mapped_column(String(40), default="")
     about: Mapped[str] = mapped_column(Text, default="")
     answers: Mapped[list] = mapped_column(JSON)
+    gender: Mapped[str | None] = mapped_column(String(1), nullable=True)        # m / f
+    seek_gender: Mapped[str | None] = mapped_column(String(3), nullable=True)   # m / f / any
+    university: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     photo_version: Mapped[int] = mapped_column(Integer, default=0)  # 0 — фото нет
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
@@ -116,8 +120,46 @@ def check_password(password, stored):
 
 # ===== Создание таблиц и демо-данных =====
 
+# новые столбцы, которых не было в первой версии базы: (таблица, столбец, тип)
+NEW_COLUMNS = [
+    ("profiles", "gender", "VARCHAR(1)"),
+    ("profiles", "seek_gender", "VARCHAR(3)"),
+    ("profiles", "university", "VARCHAR(80)"),
+    ("profiles", "updated_at", "TIMESTAMP"),
+]
+
+
+def migrate():
+    """Обновляем уже существующую базу без потери данных:
+    добавляем новые столбцы и дописываем ответы на новые вопросы."""
+    existing = {c["name"] for c in inspect(engine).get_columns("profiles")}
+    with engine.begin() as conn:
+        for table, column, sql_type in NEW_COLUMNS:
+            if column not in existing:
+                conn.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {sql_type}'))
+
+    with SessionLocal() as s:
+        changed = False
+        for p in s.scalars(select(Profile)):
+            demo = data.DEMO_EXTRA.get(p.name)
+            is_demo = demo is not None and p.owner == demo["owner"]
+            if len(p.answers) < data.N_QUESTIONS:
+                if is_demo:
+                    p.answers = list(demo["answers"])
+                else:
+                    # у старых анкет на новые вопросы ответа нет — None
+                    p.answers = list(p.answers) + [None] * (data.N_QUESTIONS - len(p.answers))
+                changed = True
+            if is_demo and p.gender is None:
+                p.gender, p.seek_gender, p.university = demo["gender"], demo["seek_gender"], demo["university"]
+                changed = True
+        if changed:
+            s.commit()
+
+
 def init_db():
     Base.metadata.create_all(engine)
+    migrate()
     with SessionLocal() as s:
         if s.scalar(select(User).limit(1)) is not None:
             return  # база уже заполнена

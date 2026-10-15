@@ -72,7 +72,9 @@
           <p class="person__info" id="p-course"></p>
 
           <dl class="profile__info">
-            <div><dt>Ищет</dt><dd id="p-housing"></dd></div>
+            <div><dt>Учится</dt><dd id="p-university"></dd></div>
+            <div><dt>В соседи ищет</dt><dd id="p-seek"></dd></div>
+            <div><dt>Жильё</dt><dd id="p-housing"></dd></div>
             <div><dt>Бюджет</dt><dd id="p-budget"></dd></div>
             <div><dt>Где</dt><dd id="p-place"></dd></div>
             <div><dt>Заезд</dt><dd id="p-when"></dd></div>
@@ -80,6 +82,12 @@
 
           <h2 class="profile__subtitle">О себе</h2>
           <p id="p-about"></p>
+
+          <!-- ответы на вопросы: показываем, если таблицы совместимости нет -->
+          <div id="habits-block" hidden>
+            <h2 class="profile__subtitle">Привычки</h2>
+            <ul class="habits" id="p-habits"></ul>
+          </div>
 
           <div class="profile__actions" id="actions">
             <button type="button" class="btn" id="interest-btn">Интересно</button>
@@ -110,7 +118,10 @@
             </div>
           </div>
 
-          <p class="status status--blue" id="mine-block" hidden>Это твоя анкета. Удалить её можно в разделе <a href="my.html">«Мои отметки»</a>.</p>
+          <div class="status status--blue" id="mine-block" hidden>
+            <p>Это твоя анкета. Так её видят другие.</p>
+            <a href="anketa.html?edit=1" class="btn btn--small mine-edit">Редактировать анкету</a>
+          </div>
 
           <!-- форма жалобы -->
           <form class="report" id="report-form" hidden>

@@ -28,6 +28,7 @@ async function loadMy() {
     document.getElementById('left-today').textContent = me.data.interests_left;
   }
   myProfileId = me.data.profile_id;
+  document.getElementById('my-incomplete').hidden = !me.data.profile_incomplete;
 
   // своя анкета есть или нет
   document.getElementById('my-profile-yes').hidden = myProfileId === null;

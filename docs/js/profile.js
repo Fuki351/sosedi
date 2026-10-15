@@ -37,6 +37,8 @@ function fill(p) {
   document.getElementById('p-plus').hidden = !p.premium;
   setText('p-course', p.course + ' курс');
   setText('p-housing', p.housing_name);
+  setText('p-university', p.university || '—');
+  setText('p-seek', p.seek_text || '—');
   setText('p-budget', p.budget_text || '—');
   setText('p-place', p.place);
   setText('p-when', p.when || '—');
@@ -57,6 +59,16 @@ function fill(p) {
   } else if (p.interest_sent) {
     interestBtn.hidden = true;
     sentBlock.hidden = false;
+  }
+
+  // без таблицы совместимости показываем просто ответы человека
+  if (!p.compare && p.answers_text && p.answers_text.length) {
+    let habits = '';
+    p.answers_text.forEach(function (row) {
+      habits += '<li><span>' + esc(row.question) + '</span><b>' + esc(row.answer) + '</b></li>';
+    });
+    document.getElementById('p-habits').innerHTML = habits;
+    document.getElementById('habits-block').hidden = false;
   }
 
   // совместимость сервер присылает, только если мы вошли и у нас есть анкета

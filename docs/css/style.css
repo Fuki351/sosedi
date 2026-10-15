@@ -2349,3 +2349,91 @@ label.btn input[type="file"] {
 .hero__card {
   box-shadow: var(--shadow-hover);
 }
+
+/* ===== Обновление 3: фильтры, редактирование, новые вопросы ===== */
+.field--compact {
+  margin-bottom: 20px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.field--compact input,
+.field--compact select {
+  margin-top: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+}
+
+.filters select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  font-family: inherit;
+  color: var(--text);
+}
+
+.filters .checkbox + .checkbox {
+  margin-top: 8px;
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+.person-card__uni {
+  margin-top: -6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.question-section {
+  margin: 32px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.question-section:first-child {
+  margin-top: 12px;
+}
+
+.habits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.habits li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.habits li span {
+  color: var(--muted);
+}
+
+.habits li b {
+  text-align: right;
+}
+
+.mine-edit {
+  margin-top: 12px;
+}
+
+.my-incomplete {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+#edit-note {
+  margin-top: 16px;
+}

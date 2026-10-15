@@ -1,6 +1,10 @@
-// Анкета из 4 шагов: показываем один шаг, проверяем поля, идём дальше
+// Анкета из 4 шагов: показываем один шаг, проверяем поля, идём дальше.
+// Если в адресе ?edit=1 — открываем свою анкету и сохраняем изменения (PUT), а не создаём новую.
 
 let step = 1;
+let questions = [];   // вопросы приходят с сервера
+let editId = null;    // id своей анкеты в режиме редактирования
+const isEdit = new URLSearchParams(window.location.search).get('edit') === '1';
 
 const steps = document.querySelectorAll('.form-step');
 const stepperItems = document.querySelectorAll('.stepper__item');
@@ -22,13 +26,13 @@ function showStep(n) {
 
   stepNumber.textContent = n;
   backBtn.hidden = n === 1;
-  nextBtn.textContent = n === 4 ? 'Опубликовать анкету' : 'Дальше';
-  hideError();
-
   if (n === 4) {
+    nextBtn.textContent = isEdit ? 'Сохранить изменения' : 'Опубликовать анкету';
     fillSummary();
+  } else {
+    nextBtn.textContent = 'Дальше';
   }
-
+  hideError();
   window.scrollTo(0, 0);
 }
 
@@ -47,10 +51,64 @@ function getChecked(name) {
   return checked ? checked.value : '';
 }
 
-// сколько из 9 вопросов про привычки отвечено
+function setChecked(name, value) {
+  if (value === null || value === undefined) return;
+  const input = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
+  if (input) input.checked = true;
+}
+
+// ===== Вопросы про привычки: рисуем по данным с сервера, по разделам =====
+async function loadQuestions() {
+  const result = await api('/questions');
+  const box = document.getElementById('questions');
+  if (!result.ok) {
+    box.innerHTML = '<p class="form-error">' + esc(errorText(result)) + '</p>';
+    return;
+  }
+  questions = result.data;
+  document.getElementById('total-questions').textContent = questions.length;
+
+  // собираем вопросы по разделам (порядок разделов — как они впервые встречаются).
+  // Имя поля q1, q2… остаётся по номеру вопроса на сервере, меняется только порядок показа
+  const sections = [];
+  questions.forEach(function (q, i) {
+    let group = sections.find(function (g) { return g.name === q.section; });
+    if (!group) {
+      group = { name: q.section, items: [] };
+      sections.push(group);
+    }
+    group.items.push(i);
+  });
+
+  let html = '';
+  let number = 0;
+  sections.forEach(function (group) {
+    html += '<h3 class="question-section">' + esc(group.name) + '</h3>';
+    group.items.forEach(function (i) {
+      const q = questions[i];
+      number++;
+      let chips = '';
+      q.answers.forEach(function (answer, j) {
+        chips += `<label class="chip"><input type="radio" name="q${i + 1}" value="${j}"><span>${esc(answer)}</span></label>`;
+      });
+      html += `
+        <fieldset class="question">
+          <legend>${number}. ${esc(q.text)}</legend>
+          <div class="chips-row">${chips}</div>
+        </fieldset>`;
+    });
+  });
+  box.innerHTML = html;
+
+  box.querySelectorAll('input').forEach(function (input) {
+    input.addEventListener('change', updateCounter);
+  });
+}
+
+// сколько вопросов про привычки отвечено
 function countAnswers() {
   let count = 0;
-  for (let i = 1; i <= 9; i++) {
+  for (let i = 1; i <= questions.length; i++) {
     if (getChecked('q' + i) !== '') {
       count++;
     }
@@ -58,19 +116,16 @@ function countAnswers() {
   return count;
 }
 
-// склонение: 1 вопрос, 2 вопроса, 5 вопросов
-function questionsWord(n) {
-  if (n === 1) return 'вопрос';
-  if (n >= 2 && n <= 4) return 'вопроса';
-  return 'вопросов';
+function updateCounter() {
+  document.getElementById('answered').textContent = countAnswers();
 }
 
-// обновляем счётчик, когда что-то выбрали
-document.querySelectorAll('input[name^="q"]').forEach(function (input) {
-  input.addEventListener('change', function () {
-    document.getElementById('answered').textContent = countAnswers();
-  });
-});
+// склонение: 1 вопрос, 2 вопроса, 5 вопросов
+function questionsWord(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'вопрос';
+  if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) return 'вопроса';
+  return 'вопросов';
+}
 
 // итог на 4 шаге
 function fillSummary() {
@@ -82,7 +137,8 @@ function fillSummary() {
 
   document.getElementById('sum-name').textContent = name || '—';
   document.getElementById('sum-tg').textContent = tg || '—';
-  document.getElementById('sum-habits').textContent = countAnswers() + ' из 9 ответов';
+  document.getElementById('sum-gender').textContent = checkedLabel('gender') + ', ищешь: ' + checkedLabel('seek_gender').toLowerCase();
+  document.getElementById('sum-habits').textContent = countAnswers() + ' из ' + questions.length + ' ответов';
   document.getElementById('sum-housing').textContent = checkedLabel('housing') + ', ' + checkedLabel('budget');
 }
 
@@ -104,10 +160,18 @@ function checkStep() {
       showError('Заполни имя и Telegram, без них анкету не опубликовать.');
       return false;
     }
+    if (getChecked('gender') === '' || getChecked('seek_gender') === '') {
+      showError('Отметь, кто ты и кого ищешь в соседи.');
+      return false;
+    }
   }
 
   if (step === 2) {
-    const left = 9 - countAnswers();
+    if (questions.length === 0) {
+      showError('Вопросы не загрузились. Обнови страницу.');
+      return false;
+    }
+    const left = questions.length - countAnswers();
     if (left > 0) {
       showError('Осталось ответить на ' + left + ' ' + questionsWord(left) + '.');
       return false;
@@ -134,6 +198,28 @@ function checkStep() {
 }
 
 let createdId = null; // id анкеты, который вернул сервер
+
+// собираем все ответы в объект, который поймёт сервер
+function collectProfile() {
+  const answers = [];
+  for (let i = 1; i <= questions.length; i++) {
+    answers.push(Number(getChecked('q' + i)));
+  }
+  return {
+    name: document.getElementById('name').value.trim(),
+    course: Number(getChecked('course')) || 1,
+    telegram: document.getElementById('telegram').value.trim(),
+    about: document.getElementById('about').value.trim(),
+    gender: getChecked('gender'),
+    seek_gender: getChecked('seek_gender'),
+    university: document.getElementById('university').value.trim(),
+    housing: getChecked('housing'),
+    budget: getChecked('budget'),
+    place: document.getElementById('area').value.trim(),
+    when: getChecked('when'),
+    answers: answers
+  };
+}
 
 // ===== Фото =====
 let photoFile = null;
@@ -164,23 +250,55 @@ document.getElementById('photo-clear').addEventListener('click', function () {
   document.getElementById('photo-clear').hidden = true;
 });
 
-// собираем все ответы в объект, который поймёт сервер
-function collectProfile() {
-  const answers = [];
-  for (let i = 1; i <= 9; i++) {
-    answers.push(Number(getChecked('q' + i)));
+// ===== Режим редактирования: заполняем форму тем, что уже есть на сервере =====
+async function loadForEdit() {
+  if (!getToken()) {
+    window.location.href = 'login.html?next=' + encodeURIComponent('anketa.html?edit=1');
+    return;
   }
-  return {
-    name: document.getElementById('name').value.trim(),
-    course: Number(getChecked('course')) || 1,
-    telegram: document.getElementById('telegram').value.trim(),
-    about: document.getElementById('about').value.trim(),
-    housing: getChecked('housing'),
-    budget: getChecked('budget'),
-    place: document.getElementById('area').value.trim(),
-    when: checkedLabel('when') === '—' ? '' : checkedLabel('when'),
-    answers: answers
-  };
+  const me = await api('/me');
+  if (!me.ok || me.data.profile_id === null) {
+    window.location.href = 'anketa.html';  // анкеты нет — создаём новую
+    return;
+  }
+  editId = me.data.profile_id;
+  const result = await api('/profiles/' + editId);
+  if (!result.ok) {
+    showError(errorText(result));
+    return;
+  }
+  const p = result.data.edit;
+
+  document.title = 'Редактирование анкеты — Соседи';
+  document.getElementById('form-title').textContent = 'Редактирование анкеты';
+  document.getElementById('name').value = p.name;
+  document.getElementById('telegram').value = p.telegram;
+  document.getElementById('about').value = p.about || '';
+  document.getElementById('university').value = p.university || '';
+  document.getElementById('area').value = p.place === 'Район не указан' ? '' : p.place;
+  setChecked('gender', p.gender);
+  setChecked('seek_gender', p.seek_gender);
+  setChecked('course', p.course >= 5 ? 5 : p.course);
+  setChecked('housing', p.housing);
+  setChecked('budget', p.budget);
+  setChecked('when', p.when);
+  p.answers.forEach(function (a, i) {
+    setChecked('q' + (i + 1), a);
+  });
+  updateCounter();
+  document.getElementById('agree1').checked = true;
+  document.getElementById('agree2').checked = true;
+
+  if (result.data.photo) {
+    photoPreview.innerHTML = '<img src="' + result.data.photo + '" alt="Фото">';
+    document.getElementById('photo-pick-text').textContent = 'Сменить фото';
+  }
+
+  // после обновления появились новые вопросы — подскажем, что нужно ответить
+  if (p.gender === null || p.answers.indexOf(null) !== -1) {
+    const note = document.getElementById('edit-note');
+    note.hidden = false;
+  }
 }
 
 nextBtn.addEventListener('click', async function () {
@@ -201,7 +319,9 @@ nextBtn.addEventListener('click', async function () {
   }
 
   nextBtn.disabled = true;
-  const result = await api('/profiles', { method: 'POST', body: collectProfile() });
+  const result = isEdit
+    ? await api('/profiles/' + editId, { method: 'PUT', body: collectProfile() })
+    : await api('/profiles', { method: 'POST', body: collectProfile() });
   nextBtn.disabled = false;
 
   if (!result.ok) {
@@ -211,7 +331,7 @@ nextBtn.addEventListener('click', async function () {
 
   createdId = result.data.id;
 
-  // анкета создана — теперь отправляем фото, если его выбрали
+  // анкета сохранена — теперь отправляем фото, если его выбрали
   if (photoFile) {
     const photoResult = await apiUpload('/profiles/' + createdId + '/photo', photoFile);
     if (!photoResult.ok) {
@@ -221,6 +341,11 @@ nextBtn.addEventListener('click', async function () {
     }
   }
   document.getElementById('done-link').href = 'profile.html?id=' + createdId;
+
+  if (isEdit) {
+    document.getElementById('done-title').textContent = 'Изменения сохранены';
+    document.getElementById('done-text').textContent = 'Анкета обновлена. Фото, отметки «Интересно» и подписка остались на месте.';
+  }
 
   document.getElementById('form-block').hidden = true;
   document.getElementById('done-block').hidden = false;
@@ -249,4 +374,19 @@ document.getElementById('confirm-yes').addEventListener('click', async function 
   }
   document.getElementById('done-ok').hidden = true;
   document.getElementById('done-deleted').hidden = false;
+});
+
+// сначала вопросы, потом (если правим) — заполняем форму
+loadQuestions().then(async function () {
+  if (isEdit) {
+    loadForEdit();
+    return;
+  }
+  // анкета уже есть — открываем её на редактирование, а не создаём вторую
+  if (getToken()) {
+    const me = await api('/me');
+    if (me.ok && me.data.profile_id !== null) {
+      window.location.href = 'anketa.html?edit=1';
+    }
+  }
 });

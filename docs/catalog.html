@@ -47,6 +47,24 @@
 
       <div class="catalog">
         <aside class="filters" id="filters">
+          <label class="field field--compact">
+            Сортировка
+            <select id="sort">
+              <option value="match">Сначала совместимые</option>
+              <option value="new">Сначала новые</option>
+              <option value="budget">Сначала дешевле</option>
+            </select>
+          </label>
+
+          <fieldset class="question">
+            <legend>Пол соседа</legend>
+            <div class="chips-row">
+              <label class="chip chip--small"><input type="radio" name="gender" value="any" checked><span>Не важно</span></label>
+              <label class="chip chip--small"><input type="radio" name="gender" value="m"><span>Парни</span></label>
+              <label class="chip chip--small"><input type="radio" name="gender" value="f"><span>Девушки</span></label>
+            </div>
+          </fieldset>
+
           <fieldset class="question">
             <legend>Жильё</legend>
             <div class="chips-row">
@@ -66,10 +84,59 @@
             </div>
           </fieldset>
 
+          <label class="field field--compact">
+            Вуз
+            <input type="text" id="f-university" placeholder="Например, РЭУ" maxlength="40">
+          </label>
+
+          <label class="field field--compact">
+            Метро или район
+            <input type="text" id="f-place" placeholder="Например, Тульская" maxlength="40">
+          </label>
+
+          <fieldset class="question">
+            <legend>Курс</legend>
+            <div class="chips-row">
+              <label class="chip chip--small"><input type="checkbox" name="course" value="1"><span>1</span></label>
+              <label class="chip chip--small"><input type="checkbox" name="course" value="2"><span>2</span></label>
+              <label class="chip chip--small"><input type="checkbox" name="course" value="3"><span>3</span></label>
+              <label class="chip chip--small"><input type="checkbox" name="course" value="4"><span>4</span></label>
+              <label class="chip chip--small"><input type="checkbox" name="course" value="5,6"><span>5–6</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend>Когда заезд</legend>
+            <div class="chips-row">
+              <label class="chip chip--small"><input type="radio" name="when" value="any" checked><span>Любой</span></label>
+              <label class="chip chip--small"><input type="radio" name="when" value="now"><span>Сейчас</span></label>
+              <label class="chip chip--small"><input type="radio" name="when" value="month"><span>В течение месяца</span></label>
+              <label class="chip chip--small"><input type="radio" name="when" value="later"><span>Позже</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="question">
+            <legend>Режим</legend>
+            <div class="chips-row">
+              <label class="chip chip--small"><input type="radio" name="sleep" value="any" checked><span>Любой</span></label>
+              <label class="chip chip--small"><input type="radio" name="sleep" value="lark"><span>Жаворонок</span></label>
+              <label class="chip chip--small"><input type="radio" name="sleep" value="owl"><span>Сова</span></label>
+            </div>
+          </fieldset>
+
           <fieldset class="question">
             <legend>Важно для меня</legend>
             <label class="checkbox"><input type="checkbox" id="no-smoke"> Только некурящие</label>
             <label class="checkbox"><input type="checkbox" id="no-pets"> Без животных</label>
+            <label class="checkbox"><input type="checkbox" id="f-guests"> Гостей почти не зовёт</label>
+            <label class="checkbox"><input type="checkbox" id="f-tidy"> Убирается каждый день</label>
+            <label class="checkbox"><input type="checkbox" id="f-quiet"> Вечером тихо</label>
+            <label class="checkbox"><input type="checkbox" id="f-photo"> Только с фото</label>
+          </fieldset>
+
+          <fieldset class="question" id="match-filter">
+            <legend>Совместимость от <b id="min-match-text">0</b>%</legend>
+            <input type="range" id="min-match" min="0" max="90" step="10" value="0" class="range">
           </fieldset>
 
           <button type="button" class="btn btn--light" id="reset-btn">Сбросить фильтры</button>

@@ -113,19 +113,29 @@ def compatibility(answers_a, answers_b):
     Одинаковый ответ — 1 балл, соседний вариант — 0,5, противоположный — 0.
     Сумму делим на 9 и переводим в проценты."""
     score = 0
+    count = 0
     for a, b in zip(answers_a, answers_b):
+        if a is None or b is None:
+            continue  # на этот вопрос кто-то ещё не ответил — не учитываем
+        count += 1
         diff = abs(a - b)
         if diff == 0:
             score += 1
         elif diff == 1:
             score += 0.5
-    return round(score / len(answers_a) * 100)
+    if count == 0:
+        return 0
+    return round(score / count * 100)
 
 
 def compare(answers_me, answers_other):
     """Таблица сравнения по каждому вопросу для карточки"""
     rows = []
     for i, question in enumerate(data.QUESTIONS):
+        if i >= len(answers_me) or i >= len(answers_other):
+            break
+        if answers_me[i] is None or answers_other[i] is None:
+            continue
         diff = abs(answers_me[i] - answers_other[i])
         result = "yes" if diff == 0 else ("part" if diff == 1 else "no")
         rows.append({
@@ -171,6 +181,8 @@ def short_card(p, my, premium_set):
         "housing_text": housing_text,
         "place": p.place,
         "tags": make_tags(p.answers),
+        "university": p.university or "",
+        "gender": p.gender,
         "photo": photo_url(p),
         "premium": p.owner in premium_set,
         "match": compatibility(my.answers, p.answers) if my is not None else None,
@@ -233,17 +245,40 @@ def me(authorization: str = Header(None), s=Depends(get_db)):
         "login": user.login,
         "name": user.name,
         "profile_id": my.id if my else None,
+        "seek_gender": my.seek_gender if my else None,
         "premium": is_premium(user),
         "premium_until": fmt(user.premium_until) if is_premium(user) else None,
         "interests_left": interests_left(s, user, my),
+        # после обновления у старых анкет нет пола и ответов на новые вопросы
+        "profile_incomplete": my is not None and (my.gender is None or None in my.answers),
     }
 
 
 # ============ Шаг 3. REST API для анкет ============
 
+BUDGET_ORDER = {"lt20": 0, "20to30": 1, "gt30": 2}
+
+
+def has_answer(p, index, values):
+    """У анкеты на вопрос index ответ из списка values"""
+    return index < len(p.answers) and p.answers[index] in values
+
+
 @app.get("/api/profiles")
 def list_profiles(housing: str = "all", budget: str = "any",
                   no_smoke: bool = False, no_pets: bool = False,
+                  gender: str = "any",        # кого ищу: m / f / any
+                  course: str = "",           # курсы через запятую: "1,2"
+                  university: str = "",       # часть названия вуза
+                  place: str = "",            # часть названия метро или района
+                  sleep: str = "any",         # lark — ложится до 23, owl — после 01
+                  guests: str = "any",        # rare — гостей почти не зовёт
+                  tidy: bool = False,         # убирается каждый день
+                  quiet: bool = False,        # вечером нужна тишина или наушники
+                  when: str = "any",          # now / month / later
+                  with_photo: bool = False,
+                  min_match: int = 0,         # совместимость не ниже, %
+                  sort: str = "match",        # match / new / budget
                   authorization: str = Header(None), s=Depends(get_db)):
     user = current_user(s, authorization)
     my = profile_of(s, user)
@@ -256,18 +291,62 @@ def list_profiles(housing: str = "all", budget: str = "any",
         query = query.where(Profile.housing == housing)
     if budget != "any":
         query = query.where(Profile.budget == budget)
+    if gender in ("m", "f"):
+        query = query.where(Profile.gender == gender)
+    courses = [int(c) for c in course.split(",") if c.strip().isdigit()]
+    if courses:
+        query = query.where(Profile.course.in_(courses))
+    when_map = {"now": "Уже сейчас", "month": "В течение месяца", "later": "Позже"}
+    if when in when_map:
+        query = query.where(Profile.when == when_map[when])
+    if with_photo:
+        query = query.where(Profile.photo_version > 0)
 
     result = []
     for p in s.scalars(query):
-        if no_smoke and p.answers[5] == 2:
+        # поиск по тексту без учёта регистра: «рэу» найдёт «РЭУ им. Плеханова»
+        if university.strip() and university.strip().lower() not in (p.university or "").lower():
             continue
-        if no_pets and p.answers[6] == 0:
+        if place.strip() and place.strip().lower() not in (p.place or "").lower():
             continue
-        result.append(short_card(p, my, premium_set))
+        if no_smoke and has_answer(p, 5, [2]):
+            continue
+        if no_pets and has_answer(p, 6, [0]):
+            continue
+        if sleep == "lark" and not has_answer(p, 0, [0]):
+            continue
+        if sleep == "owl" and not has_answer(p, 0, [2]):
+            continue
+        if guests == "rare" and not has_answer(p, 3, [0]):
+            continue
+        if tidy and not has_answer(p, 2, [0]):
+            continue
+        if quiet and not has_answer(p, 4, [0, 1]):
+            continue
+        # не показываем тех, кто ищет соседа другого пола, чем я
+        if my is not None and my.gender and p.seek_gender in ("m", "f") and p.seek_gender != my.gender:
+            continue
+        card = short_card(p, my, premium_set)
+        if min_match and card["match"] is not None and card["match"] < min_match:
+            continue
+        card["budget"] = p.budget
+        result.append(card)
 
-    # анкеты с «Соседи+» поднимаются наверх, дальше — самые совместимые
-    result.sort(key=lambda c: (c["premium"], c["match"] or 0), reverse=True)
+    # анкеты с «Соседи+» всегда выше, дальше — по выбранной сортировке
+    if sort == "new":
+        result.sort(key=lambda c: c["id"], reverse=True)
+    elif sort == "budget":
+        result.sort(key=lambda c: BUDGET_ORDER.get(c["budget"], 9))
+    else:
+        result.sort(key=lambda c: c["match"] or 0, reverse=True)
+    result.sort(key=lambda c: c["premium"], reverse=True)  # сортировка устойчивая: порядок внутри сохранится
     return result
+
+
+@app.get("/api/questions")
+def questions():
+    """Вопросы анкеты — по ним фронт сам строит форму"""
+    return [{"section": q[0], "name": q[1], "text": q[2], "answers": q[3]} for q in data.QUESTION_LIST]
 
 
 @app.get("/api/profiles/{profile_id}")
@@ -284,6 +363,12 @@ def get_profile(profile_id: int, authorization: str = Header(None), s=Depends(ge
     card["when"] = p.when
     card["budget_text"] = data.BUDGETS.get(p.budget) if p.budget else None
     card["housing_name"] = data.HOUSING[p.housing]
+    card["gender_text"] = data.GENDERS.get(p.gender)
+    card["seek_text"] = data.SEEK_GENDERS.get(p.seek_gender)
+    card["answers_text"] = [
+        {"question": data.QUESTIONS[i], "answer": data.ANSWERS[i][a]}
+        for i, a in enumerate(p.answers[:data.N_QUESTIONS]) if a is not None
+    ]
     card["is_mine"] = my is not None and my.id == p.id
     card["telegram"] = None
     card["interest_sent"] = False
@@ -299,6 +384,13 @@ def get_profile(profile_id: int, authorization: str = Header(None), s=Depends(ge
 
     if card["is_mine"]:
         card["telegram"] = p.telegram
+        # своей анкете отдаём всё как есть — для формы редактирования
+        card["edit"] = {
+            "name": p.name, "course": p.course, "telegram": p.telegram, "about": p.about,
+            "housing": p.housing, "budget": p.budget, "place": p.place, "when": p.when,
+            "gender": p.gender, "seek_gender": p.seek_gender, "university": p.university or "",
+            "answers": p.answers,
+        }
     return card
 
 
@@ -311,16 +403,14 @@ class ProfileIn(BaseModel):
     budget: str
     place: str = ""
     when: str = ""
+    gender: str
+    seek_gender: str
+    university: str = ""
     answers: list[int]
 
 
-@app.post("/api/profiles", status_code=201)
-def create_profile(body: ProfileIn, authorization: str = Header(None), s=Depends(get_db)):
-    user = require_user(s, authorization)
-
-    # проверки
-    if profile_of(s, user) is not None:
-        raise HTTPException(status_code=409, detail="У тебя уже есть анкета. Сначала удали старую")
+def clean_profile(body):
+    """Проверяем данные анкеты. Если что-то не так — ошибка 400, иначе — готовые поля"""
     name = body.name.strip()
     if name == "" or len(name) > 40:
         raise HTTPException(status_code=400, detail="Имя должно быть от 1 до 40 символов")
@@ -331,28 +421,57 @@ def create_profile(body: ProfileIn, authorization: str = Header(None), s=Depends
         telegram = "@" + telegram
     if not re.fullmatch(r"@[A-Za-z0-9_]{5,32}", telegram):
         raise HTTPException(status_code=400, detail="Telegram: от 5 символов, латиница, цифры и _")
-    if len(body.answers) != 9 or any(a not in (0, 1, 2) for a in body.answers):
-        raise HTTPException(status_code=400, detail="Нужны ответы на все 9 вопросов")
+    if len(body.answers) != data.N_QUESTIONS or any(a not in (0, 1, 2) for a in body.answers):
+        raise HTTPException(status_code=400, detail=f"Нужны ответы на все {data.N_QUESTIONS} вопросов")
     if body.housing not in data.HOUSING:
         raise HTTPException(status_code=400, detail="Неизвестный тип жилья")
     if body.budget not in data.BUDGETS:
         raise HTTPException(status_code=400, detail="Неизвестный бюджет")
+    if body.gender not in data.GENDERS:
+        raise HTTPException(status_code=400, detail="Укажи, парень ты или девушка")
+    if body.seek_gender not in data.SEEK_GENDERS:
+        raise HTTPException(status_code=400, detail="Укажи, кого ищешь в соседи")
+    return {
+        "name": name,
+        "course": body.course,
+        "telegram": telegram,
+        "housing": body.housing,
+        "budget": body.budget,
+        "place": body.place.strip()[:80] or "Район не указан",
+        "when": body.when if body.when in data.WHEN_OPTIONS else "",
+        "about": body.about.strip()[:300],
+        "gender": body.gender,
+        "seek_gender": body.seek_gender,
+        "university": body.university.strip()[:80],
+        "answers": body.answers,
+    }
 
-    profile = Profile(
-        owner=user.login,
-        name=name,
-        course=body.course,
-        telegram=telegram,
-        housing=body.housing,
-        budget=body.budget,
-        place=body.place.strip()[:80] or "Район не указан",
-        when=body.when[:40],
-        about=body.about.strip()[:200],
-        answers=body.answers,
-    )
+
+@app.post("/api/profiles", status_code=201)
+def create_profile(body: ProfileIn, authorization: str = Header(None), s=Depends(get_db)):
+    user = require_user(s, authorization)
+    if profile_of(s, user) is not None:
+        raise HTTPException(status_code=409, detail="У тебя уже есть анкета — её можно отредактировать")
+    profile = Profile(owner=user.login, **clean_profile(body))
     s.add(profile)
     s.commit()
     return {"id": profile.id, "message": "Анкета опубликована"}
+
+
+@app.put("/api/profiles/{profile_id}")
+def update_profile(profile_id: int, body: ProfileIn, authorization: str = Header(None), s=Depends(get_db)):
+    """Редактирование своей анкеты: фото, отметки и подписка сохраняются"""
+    user = require_user(s, authorization)
+    p = s.get(Profile, profile_id)
+    if p is None:
+        raise HTTPException(status_code=404, detail="Анкета не найдена")
+    if p.owner != user.login:
+        raise HTTPException(status_code=403, detail="Редактировать можно только свою анкету")
+    for field, value in clean_profile(body).items():
+        setattr(p, field, value)
+    p.updated_at = datetime.now()
+    s.commit()
+    return {"id": p.id, "message": "Изменения сохранены"}
 
 
 @app.delete("/api/profiles/{profile_id}")

@@ -16,6 +16,19 @@ function getChecked(name) {
   return document.querySelector('input[name="' + name + '"]:checked').value;
 }
 
+// отмеченные галочки курса: "1,2,5,6"
+function getCourses() {
+  const values = [];
+  document.querySelectorAll('input[name="course"]:checked').forEach(function (input) {
+    values.push(input.value);
+  });
+  return values.join(',');
+}
+
+function isOn(id) {
+  return document.getElementById(id).checked;
+}
+
 // цвет процента: от 70 зелёный, от 55 синий, ниже серый
 function matchClass(match) {
   if (match >= 70) return 'match-badge--high';
@@ -33,10 +46,22 @@ function word(n) {
 // просим у сервера анкеты. Фильтрует тоже сервер — передаём фильтры в адресе запроса
 async function loadPeople() {
   const params = new URLSearchParams({
+    sort: document.getElementById('sort').value,
+    gender: getChecked('gender'),
     housing: getChecked('housing'),
     budget: getChecked('budget'),
-    no_smoke: document.getElementById('no-smoke').checked,
-    no_pets: document.getElementById('no-pets').checked
+    university: document.getElementById('f-university').value.trim(),
+    place: document.getElementById('f-place').value.trim(),
+    course: getCourses(),
+    when: getChecked('when'),
+    sleep: getChecked('sleep'),
+    guests: isOn('f-guests') ? 'rare' : 'any',
+    tidy: isOn('f-tidy'),
+    quiet: isOn('f-quiet'),
+    with_photo: isOn('f-photo'),
+    no_smoke: isOn('no-smoke'),
+    no_pets: isOn('no-pets'),
+    min_match: document.getElementById('min-match').value
   });
 
   countText.textContent = 'Загружаем анкеты…';
@@ -90,6 +115,7 @@ function render() {
         <div class="person-card__body">
           <p class="person__name">${esc(p.name)}, ${p.course} курс</p>
           <p class="person__info">${esc(p.housing_text)}</p>
+          ${p.university ? `<p class="person-card__uni">🎓 ${esc(p.university)}</p>` : ''}
           <p class="person-card__place">📍 ${esc(p.place)}</p>
           <ul class="tags">${tagsHtml}</ul>
           <a href="profile.html?id=${p.id}" class="person-card__link">Открыть анкету</a>
@@ -103,12 +129,49 @@ function render() {
 }
 
 // при любом изменении фильтров заново спрашиваем сервер
-document.querySelectorAll('#filters input').forEach(function (input) {
-  input.addEventListener('change', function () {
-    shown = 6;
-    loadPeople();
+function reload() {
+  shown = 6;
+  // если вошли — подставляем «кого ищу» из своей анкеты; фильтр по % — только когда есть своя анкета
+async function start() {
+  document.getElementById('match-filter').hidden = true;
+  if (getToken()) {
+    const me = await api('/me');
+    if (me.ok && me.data.profile_id !== null) {
+      document.getElementById('match-filter').hidden = false;
+      if (me.data.seek_gender === 'm' || me.data.seek_gender === 'f') {
+        document.querySelector('input[name="gender"][value="' + me.data.seek_gender + '"]').checked = true;
+      }
+      if (me.data.profile_incomplete) {
+        const hint = document.getElementById('login-hint');
+        hint.innerHTML = 'В анкете появились новые вопросы. <a href="anketa.html?edit=1">Дополни анкету</a>, чтобы тебя находили через фильтры.';
+        hint.hidden = false;
+      }
+    }
+  }
+  loadPeople();
+}
+
+start();
+}
+
+document.querySelectorAll('#filters input[type="radio"], #filters input[type="checkbox"], #sort').forEach(function (input) {
+  input.addEventListener('change', reload);
+});
+
+// текстовые поля: ждём, пока человек перестанет печатать
+let typingTimer = null;
+['f-university', 'f-place'].forEach(function (id) {
+  document.getElementById(id).addEventListener('input', function () {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(reload, 400);
   });
 });
+
+const minMatch = document.getElementById('min-match');
+minMatch.addEventListener('input', function () {
+  document.getElementById('min-match-text').textContent = minMatch.value;
+});
+minMatch.addEventListener('change', reload);
 
 moreBtn.addEventListener('click', function () {
   shown += 3;
@@ -116,12 +179,19 @@ moreBtn.addEventListener('click', function () {
 });
 
 function resetFilters() {
-  document.querySelector('input[name="housing"][value="all"]').checked = true;
-  document.querySelector('input[name="budget"][value="any"]').checked = true;
-  document.getElementById('no-smoke').checked = false;
-  document.getElementById('no-pets').checked = false;
-  shown = 6;
-  loadPeople();
+  ['housing:all', 'budget:any', 'gender:any', 'when:any', 'sleep:any'].forEach(function (pair) {
+    const parts = pair.split(':');
+    document.querySelector('input[name="' + parts[0] + '"][value="' + parts[1] + '"]').checked = true;
+  });
+  document.querySelectorAll('#filters input[type="checkbox"]').forEach(function (input) {
+    input.checked = false;
+  });
+  document.getElementById('f-university').value = '';
+  document.getElementById('f-place').value = '';
+  document.getElementById('sort').value = 'match';
+  minMatch.value = 0;
+  document.getElementById('min-match-text').textContent = '0';
+  reload();
 }
 
 document.getElementById('reset-btn').addEventListener('click', resetFilters);
@@ -140,4 +210,24 @@ filtersToggle.addEventListener('click', function () {
   }
 });
 
-loadPeople();
+// если вошли — подставляем «кого ищу» из своей анкеты; фильтр по % — только когда есть своя анкета
+async function start() {
+  document.getElementById('match-filter').hidden = true;
+  if (getToken()) {
+    const me = await api('/me');
+    if (me.ok && me.data.profile_id !== null) {
+      document.getElementById('match-filter').hidden = false;
+      if (me.data.seek_gender === 'm' || me.data.seek_gender === 'f') {
+        document.querySelector('input[name="gender"][value="' + me.data.seek_gender + '"]').checked = true;
+      }
+      if (me.data.profile_incomplete) {
+        const hint = document.getElementById('login-hint');
+        hint.innerHTML = 'В анкете появились новые вопросы. <a href="anketa.html?edit=1">Дополни анкету</a>, чтобы тебя находили через фильтры.';
+        hint.hidden = false;
+      }
+    }
+  }
+  loadPeople();
+}
+
+start();
