@@ -135,6 +135,35 @@ function checkStep() {
 
 let createdId = null; // id анкеты, который вернул сервер
 
+// ===== Фото =====
+let photoFile = null;
+const photoFileInput = document.getElementById('photo-file');
+const photoPreview = document.getElementById('photo-preview');
+
+photoFileInput.addEventListener('change', function () {
+  const file = photoFileInput.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) {
+    showError('Фото больше 8 МБ, выбери поменьше.');
+    photoFileInput.value = '';
+    return;
+  }
+  hideError();
+  photoFile = file;
+  // превью прямо в браузере, ещё до отправки на сервер
+  photoPreview.innerHTML = '<img src="' + URL.createObjectURL(file) + '" alt="Фото">';
+  document.getElementById('photo-pick-text').textContent = 'Другое фото';
+  document.getElementById('photo-clear').hidden = false;
+});
+
+document.getElementById('photo-clear').addEventListener('click', function () {
+  photoFile = null;
+  photoFileInput.value = '';
+  photoPreview.innerHTML = '<span>📷</span>';
+  document.getElementById('photo-pick-text').textContent = 'Выбрать фото';
+  document.getElementById('photo-clear').hidden = true;
+});
+
 // собираем все ответы в объект, который поймёт сервер
 function collectProfile() {
   const answers = [];
@@ -181,6 +210,18 @@ nextBtn.addEventListener('click', async function () {
   }
 
   createdId = result.data.id;
+
+  // анкета создана — теперь отправляем фото, если его выбрали
+  if (photoFile) {
+    const photoResult = await apiUpload('/profiles/' + createdId + '/photo', photoFile);
+    if (!photoResult.ok) {
+      document.getElementById('done-photo-error').textContent =
+        'Анкета сохранена, но фото не загрузилось: ' + errorText(photoResult) + ' Его можно добавить на странице анкеты.';
+      document.getElementById('done-photo-error').hidden = false;
+    }
+  }
+  document.getElementById('done-link').href = 'profile.html?id=' + createdId;
+
   document.getElementById('form-block').hidden = true;
   document.getElementById('done-block').hidden = false;
   window.scrollTo(0, 0);

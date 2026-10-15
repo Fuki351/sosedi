@@ -1,5 +1,5 @@
-# Все данные сервера хранятся прямо в памяти, в обычных списках.
-# Перезапустил сервер — всё вернулось к началу. База данных будет позже.
+# Справочники сайта и демо-данные.
+# Сами данные теперь хранятся в базе (см. db.py). Отсюда база заполняется при первом запуске.
 
 # 9 вопросов анкеты и варианты ответов. Ответ человека — номер варианта: 0, 1 или 2
 QUESTIONS = [
@@ -41,68 +41,63 @@ HOUSING = {
 
 REPORT_REASONS = ["fake", "rude", "spam", "other"]
 
-# Пользователи для входа. Пароли прямо в коде — так сказано в задании (учебный вариант)
-users = [
+# ===== Монетизация: подписка «Соседи+» =====
+FREE_DAILY_INTERESTS = 5  # без подписки — 5 отметок «Интересно» в сутки
+
+PLANS = {
+    "month": {"title": "1 месяц", "days": 30, "price": 199},
+    "season": {"title": "3 месяца", "days": 90, "price": 449},
+}
+
+# ===== Демо-данные для первого запуска =====
+DEMO_USERS = [
     {"login": "ivan", "password": "qwerty", "name": "Иван"},
     {"login": "anya", "password": "12345", "name": "Аня"},
     {"login": "maria", "password": "maria1", "name": "Мария"},  # у неё пока нет анкеты
 ]
 
-# Выданные токены: токен -> логин
-tokens = {}
-
-# Анкеты. owner — логин владельца (у демо-анкет его нет)
-profiles = [
-    {"id": 1, "owner": "anya", "name": "Аня", "course": 2, "telegram": "@sosedi_demo_anya",
+DEMO_PROFILES = [
+    {"owner": "anya", "name": "Аня", "course": 2, "telegram": "@sosedi_demo_anya",
      "housing": "flat", "budget": "20to30", "place": "м. Тульская", "when": "В течение месяца",
      "about": "Днём почти всегда на парах, вечером готовлю и сижу с ноутом. По будням люблю тишину после одиннадцати.",
      "answers": [1, 1, 0, 1, 1, 0, 2, 1, 1]},
-    {"id": 2, "owner": None, "name": "Максим", "course": 1, "telegram": "@sosedi_demo_max",
+    {"owner": None, "name": "Максим", "course": 1, "telegram": "@sosedi_demo_max",
      "housing": "dorm", "budget": None, "place": "Ищет соседа в комнату", "when": "Уже сейчас",
      "about": "Встаю рано, днём на учёбе и тренировках.",
      "answers": [0, 0, 1, 0, 0, 0, 1, 0, 1]},
-    {"id": 3, "owner": None, "name": "Карина", "course": 3, "telegram": "@sosedi_demo_karina",
+    {"owner": None, "name": "Карина", "course": 3, "telegram": "@sosedi_demo_karina",
      "housing": "flat", "budget": "gt30", "place": "м. Добрынинская", "when": "Позже",
      "about": "Живу с кошкой, люблю порядок.",
      "answers": [1, 0, 0, 1, 1, 1, 0, 1, 0]},
-    {"id": 4, "owner": None, "name": "Тимур", "course": 2, "telegram": "@sosedi_demo_timur",
+    {"owner": None, "name": "Тимур", "course": 2, "telegram": "@sosedi_demo_timur",
      "housing": "flat", "budget": "lt20", "place": "м. Выхино", "when": "В течение месяца",
      "about": "Работаю по вечерам, ложусь поздно.",
      "answers": [2, 2, 2, 2, 2, 2, 1, 0, 2]},
-    {"id": 5, "owner": None, "name": "Соня", "course": 1, "telegram": "@sosedi_demo_sonya",
+    {"owner": None, "name": "Соня", "course": 1, "telegram": "@sosedi_demo_sonya",
      "housing": "dorm", "budget": None, "place": "Ищет соседку в комнату", "when": "Уже сейчас",
      "about": "Много учусь дома, вечером в наушниках.",
      "answers": [1, 0, 0, 0, 1, 0, 1, 0, 1]},
-    {"id": 6, "owner": None, "name": "Артём", "course": 4, "telegram": "@sosedi_demo_artem",
+    {"owner": None, "name": "Артём", "course": 4, "telegram": "@sosedi_demo_artem",
      "housing": "flat", "budget": "20to30", "place": "м. Серпуховская", "when": "Позже",
      "about": "Люблю, когда приходят друзья.",
      "answers": [2, 2, 1, 2, 2, 0, 1, 1, 2]},
-    {"id": 7, "owner": None, "name": "Вика", "course": 2, "telegram": "@sosedi_demo_vika",
+    {"owner": None, "name": "Вика", "course": 2, "telegram": "@sosedi_demo_vika",
      "housing": "flat", "budget": "lt20", "place": "м. Шаболовская", "when": "В течение месяца",
      "about": "У меня маленькая собака, очень спокойная.",
      "answers": [1, 1, 0, 1, 1, 1, 0, 2, 0]},
-    {"id": 8, "owner": None, "name": "Дима", "course": 3, "telegram": "@sosedi_demo_dima",
+    {"owner": None, "name": "Дима", "course": 3, "telegram": "@sosedi_demo_dima",
      "housing": "dorm", "budget": None, "place": "Ищет соседа в комнату", "when": "Уже сейчас",
      "about": "Сова, часто зову друзей.",
      "answers": [2, 1, 2, 2, 2, 2, 1, 1, 0]},
-    {"id": 9, "owner": None, "name": "Полина", "course": 1, "telegram": "@sosedi_demo_polina",
+    {"owner": None, "name": "Полина", "course": 1, "telegram": "@sosedi_demo_polina",
      "housing": "flat", "budget": "gt30", "place": "м. Октябрьская", "when": "Позже",
      "about": "Встаю очень рано, нужна тишина.",
      "answers": [0, 0, 0, 0, 0, 0, 2, 0, 0]},
-    {"id": 10, "owner": "ivan", "name": "Иван", "course": 1, "telegram": "@sosedi_demo_ivan",
+    {"owner": "ivan", "name": "Иван", "course": 1, "telegram": "@sosedi_demo_ivan",
      "housing": "flat", "budget": "20to30", "place": "м. Шаболовская", "when": "В течение месяца",
      "about": "Первокурсник, ищу спокойного соседа.",
      "answers": [1, 1, 1, 1, 1, 0, 0, 1, 1]},
 ]
 
-# Вторая сущность: отметки «Интересно» — кто (from_id) отметил кого (to_id)
-interests = [
-    {"id": 1, "from_id": 1, "to_id": 10, "created_at": "2026-10-10 18:20"},  # Аня уже отметила Ивана
-    {"id": 2, "from_id": 7, "to_id": 10, "created_at": "2026-10-11 09:05"},  # Вика тоже
-]
-
-# Жалобы на анкеты
-reports = []
-
-# Счётчики для новых id
-next_ids = {"profile": 11, "interest": 3, "report": 1}
+# Отметки «Интересно»: номера анкет из списка выше (с 1)
+DEMO_INTERESTS = [(1, 10), (7, 10)]  # Аня и Вика уже отметили Ивана

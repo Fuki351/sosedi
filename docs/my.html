@@ -22,6 +22,7 @@
         <a href="catalog.html">Анкеты</a>
         <a href="index.html#how">Как это работает</a>
         <a href="about.html">О проекте</a>
+        <a href="premium.html" class="menu__plus">★ Соседи+</a>
         <a href="login.html" id="login-link">Войти</a>
         <a href="anketa.html" class="btn btn--small">Создать анкету</a>
       </nav>
@@ -65,7 +66,32 @@
               <a href="anketa.html" class="btn">Заполнить анкету</a>
             </div>
           </div>
-          <p class="received" id="received"></p>
+        </section>
+
+        <section class="my-card">
+          <h2>Подписка</h2>
+          <div id="plus-yes" hidden>
+            <p><span class="plus-badge plus-badge--inline">★ Соседи+</span></p>
+            <p id="plus-until"></p>
+            <div class="my-card__buttons"><a href="premium.html" class="btn btn--light">Продлить</a></div>
+          </div>
+          <div id="plus-no" hidden>
+            <p>Бесплатная версия. Отметок на сегодня осталось: <b id="left-today"></b></p>
+            <div class="my-card__buttons"><a href="premium.html" class="btn btn--gold">Подключить Соседи+</a></div>
+          </div>
+        </section>
+
+        <section class="my-card my-card--wide">
+          <h2>Кто отметил меня</h2>
+          <ul class="my-list" id="received-list"></ul>
+          <p class="my-empty" id="received-empty" hidden>Пока никто. Добавь фото в анкету — так её открывают чаще.</p>
+          <!-- без подписки: видно только число, имена размыты -->
+          <div class="locked" id="received-locked" hidden>
+            <div class="locked__faces" id="locked-faces"></div>
+            <p><b id="locked-count"></b></p>
+            <p>Имена и фото тех, кто тебя отметил, видно с подпиской «Соседи+».</p>
+            <a href="premium.html" class="btn btn--gold btn--small">Посмотреть, кто это</a>
+          </div>
         </section>
 
         <section class="my-card my-card--wide">

@@ -65,7 +65,7 @@ function render() {
   people.slice(0, shown).forEach(function (p) {
     let tagsHtml = '';
     p.tags.forEach(function (tag) {
-      tagsHtml += '<li>' + tag + '</li>';
+      tagsHtml += '<li>' + esc(tag) + '</li>';
     });
 
     // процент показываем, только если сервер его посчитал (мы вошли и есть анкета)
@@ -74,21 +74,26 @@ function render() {
       matchHtml = `<span class="match-badge ${matchClass(p.match)}">${p.match}%</span>`;
     }
 
+    // сверху фото; если фото нет — цветная заглушка с буквой
+    const cover = p.photo
+      ? `<img src="${p.photo}" alt="${esc(p.name)}" loading="lazy">`
+      : `<span class="person-card__letter" style="background:${avatarColor(p.id)}">${esc(p.name[0])}</span>`;
+    const premiumHtml = p.premium ? '<span class="plus-badge">★ Соседи+</span>' : '';
+
     cardsList.innerHTML += `
-      <li class="person-card">
-        <div class="person-card__top">
-          <div class="person">
-            <span class="avatar">${p.name[0]}</span>
-            <div>
-              <p class="person__name">${p.name}, ${p.course} курс</p>
-              <p class="person__info">${p.housing_text}</p>
-            </div>
-          </div>
+      <li class="person-card${p.premium ? ' person-card--plus' : ''}">
+        <a href="profile.html?id=${p.id}" class="person-card__cover">
+          ${cover}
+          ${premiumHtml}
           ${matchHtml}
+        </a>
+        <div class="person-card__body">
+          <p class="person__name">${esc(p.name)}, ${p.course} курс</p>
+          <p class="person__info">${esc(p.housing_text)}</p>
+          <p class="person-card__place">📍 ${esc(p.place)}</p>
+          <ul class="tags">${tagsHtml}</ul>
+          <a href="profile.html?id=${p.id}" class="person-card__link">Открыть анкету</a>
         </div>
-        <p class="person-card__place">📍 ${p.place}</p>
-        <ul class="tags">${tagsHtml}</ul>
-        <a href="profile.html?id=${p.id}" class="person-card__link">Открыть анкету</a>
       </li>
     `;
   });

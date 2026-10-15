@@ -1,0 +1,15 @@
+# Настройки для хостинга Render (render.com): сайт и сервер по одной общей ссылке
+services:
+  - type: web
+    name: sosedi
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: TZ
+        value: Europe/Moscow
+      - key: DATABASE_URL
+        sync: false   # адрес базы Neon вставляем руками в настройках Render

@@ -22,6 +22,7 @@
         <a href="catalog.html">Анкеты</a>
         <a href="index.html#how">Как это работает</a>
         <a href="about.html">О проекте</a>
+        <a href="premium.html" class="menu__plus">★ Соседи+</a>
         <a href="login.html" id="login-link">Войти</a>
         <a href="anketa.html" class="btn btn--small">Создать анкету</a>
       </nav>
@@ -40,7 +41,7 @@
       <div id="form-block">
         <h1 class="page__title">Анкета</h1>
         <p class="page__desc">Шаг <span id="step-number">1</span> из 4 · займёт минут пять</p>
-        <p class="info-bar" id="login-hint" hidden>Чтобы опубликовать анкету, нужно войти. <a href="login.html?next=anketa.html">Войти</a></p>
+        <p class="info-bar" id="login-hint" hidden>Чтобы опубликовать анкету, нужен аккаунт. <a href="login.html?next=anketa.html&amp;mode=register">Зарегистрироваться</a> или <a href="login.html?next=anketa.html">войти</a></p>
 
         <!-- полоски шагов -->
         <ol class="stepper">
@@ -56,6 +57,23 @@
             <!-- Шаг 1 -->
             <div class="form-step" data-step="1">
               <h2>О себе</h2>
+
+              <!-- фото: показываем превью сразу, на сервер отправляем вместе с анкетой -->
+              <div class="photo-pick">
+                <div class="photo-pick__preview" id="photo-preview"><span>📷</span></div>
+                <div>
+                  <p class="photo-pick__title">Фото <span class="field__optional">(можно пропустить)</span></p>
+                  <p class="field__hint">С фото анкету открывают чаще. JPG, PNG или WEBP до 8 МБ.</p>
+                  <div class="photo-pick__buttons">
+                    <label class="btn btn--light btn--small">
+                      <span id="photo-pick-text">Выбрать фото</span>
+                      <input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" hidden>
+                    </label>
+                    <button type="button" class="btn btn--light btn--small" id="photo-clear" hidden>Убрать</button>
+                  </div>
+                </div>
+              </div>
+
               <label class="field">
                 Как тебя зовут
                 <input type="text" id="name" placeholder="Например, Аня" maxlength="40">
@@ -254,8 +272,10 @@
           <div class="done__icon">✓</div>
           <h1>Анкета опубликована</h1>
           <p>Анкета сохранена на сервере, теперь тебя видно в поиске. Посмотри, кто подходит, и жми «Интересно» у тех, кто понравился.</p>
+          <p class="form-error" id="done-photo-error" hidden></p>
           <div class="done__buttons">
             <a href="catalog.html" class="btn">Смотреть анкеты</a>
+            <a href="#" class="btn btn--light" id="done-link">Моя анкета</a>
             <button type="button" class="btn btn--danger" id="delete-btn">Удалить анкету</button>
           </div>
           <div class="confirm" id="confirm-block" hidden>

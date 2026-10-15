@@ -17,6 +17,16 @@ async function loadMy() {
   }
 
   document.getElementById('my-who').textContent = 'Ты вошёл как ' + me.data.name + ' (' + me.data.login + ')';
+
+  // подписка
+  document.getElementById('plus-yes').hidden = !me.data.premium;
+  document.getElementById('plus-no').hidden = me.data.premium;
+  if (me.data.premium) {
+    const d = me.data.premium_until.slice(0, 10).split('-');
+    document.getElementById('plus-until').textContent = 'Активна до ' + d[2] + '.' + d[1] + '.' + d[0];
+  } else {
+    document.getElementById('left-today').textContent = me.data.interests_left;
+  }
   myProfileId = me.data.profile_id;
 
   // своя анкета есть или нет
@@ -33,12 +43,9 @@ async function loadMy() {
     return;
   }
 
-  const count = result.data.received_count;
-  document.getElementById('received').textContent = count > 0
-    ? 'Тебя отметили «Интересно»: ' + count
-    : '';
 
   renderList(result.data.sent);
+  renderReceived(result.data);
   content.hidden = false;
 }
 
@@ -52,15 +59,60 @@ function renderList(sent) {
     let contact = '';
     if (item.mutual) {
       status = '<span class="result result--yes">Взаимно</span>';
-      contact = '<p class="my-list__contact">Telegram: <b>' + item.telegram + '</b></p>';
+      contact = '<p class="my-list__contact">Telegram: <b>' + esc(item.telegram) + '</b></p>';
     }
 
     list.innerHTML += `
       <li class="my-list__item">
-        <div>
-          <a href="profile.html?id=${item.profile_id}" class="my-list__name">${item.name}</a>
+        ${avatarHtml(item, 'avatar--small')}
+        <div class="my-list__main">
+          <a href="profile.html?id=${item.profile_id}" class="my-list__name">${esc(item.name)}</a>
           <p class="my-list__info">Совместимость ${item.match}% · отмечено ${item.created_at}</p>
           ${contact}
+        </div>
+        ${status}
+      </li>`;
+  });
+}
+
+// «Кто отметил меня»: список — с подпиской, без неё — только число
+function word(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'человек';
+  if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) return 'человека';
+  return 'человек';
+}
+
+function renderReceived(info) {
+  const list = document.getElementById('received-list');
+  const locked = document.getElementById('received-locked');
+  list.innerHTML = '';
+  document.getElementById('received-empty').hidden = info.received_count > 0;
+  locked.hidden = true;
+
+  if (info.received === null) {
+    if (info.received_count > 0) {
+      document.getElementById('locked-count').textContent =
+        'Тебя отметили: ' + info.received_count + ' ' + word(info.received_count);
+      let faces = '';
+      for (let i = 0; i < Math.min(info.received_count, 4); i++) {
+        faces += '<span class="locked__face" style="background:' + avatarColor(i + 3) + '"></span>';
+      }
+      document.getElementById('locked-faces').innerHTML = faces;
+      locked.hidden = false;
+    }
+    return;
+  }
+
+  info.received.forEach(function (item) {
+    const status = item.mutual
+      ? '<span class="result result--yes">Взаимно</span>'
+      : `<a href="profile.html?id=${item.profile_id}" class="btn btn--small">Ответить</a>`;
+    list.innerHTML += `
+      <li class="my-list__item">
+        ${avatarHtml(item, 'avatar--small')}
+        <div class="my-list__main">
+          <a href="profile.html?id=${item.profile_id}" class="my-list__name">${esc(item.name)}</a>
+          <p class="my-list__info">Совместимость ${item.match}% · отметил(а) ${item.created_at}</p>
         </div>
         ${status}
       </li>`;

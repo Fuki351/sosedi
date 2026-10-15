@@ -32,8 +32,9 @@ async function loadProfile() {
 
 function fill(p) {
   document.title = p.name + ' — Соседи';
-  setText('p-avatar', p.name[0]);
+  showPhoto(p);
   setText('p-name', p.name);
+  document.getElementById('p-plus').hidden = !p.premium;
   setText('p-course', p.course + ' курс');
   setText('p-housing', p.housing_name);
   setText('p-budget', p.budget_text || '—');
@@ -46,6 +47,8 @@ function fill(p) {
   if (p.is_mine) {
     document.getElementById('actions').hidden = true;
     document.getElementById('mine-block').hidden = false;
+    document.getElementById('photo-edit').hidden = false;
+    profile.classList.add('profile--mine');
   }
 
   // состояние «Интересно»
@@ -70,6 +73,57 @@ function fill(p) {
 
   profile.hidden = false;
 }
+
+// большое фото анкеты или заглушка с буквой
+let currentProfile = null;
+
+function showPhoto(p) {
+  currentProfile = p;
+  const box = document.getElementById('p-photo');
+  if (p.photo) {
+    box.innerHTML = `<img src="${p.photo}" alt="${esc(p.name)}">`;
+    box.style.background = '';
+  } else {
+    box.innerHTML = `<span>${esc(p.name[0])}</span>`;
+    box.style.background = avatarColor(p.id);
+  }
+  document.getElementById('photo-btn-text').textContent = p.photo ? 'Сменить фото' : 'Загрузить фото';
+  document.getElementById('photo-delete').hidden = !p.photo;
+}
+
+// своя анкета: загрузка фото
+const photoInput = document.getElementById('photo-input');
+const photoError = document.getElementById('photo-error');
+
+photoInput.addEventListener('change', async function () {
+  const file = photoInput.files[0];
+  if (!file) return;
+  photoError.hidden = true;
+  if (file.size > 8 * 1024 * 1024) {
+    photoError.textContent = 'Фото больше 8 МБ, выбери поменьше';
+    photoError.hidden = false;
+    return;
+  }
+  document.getElementById('photo-btn-text').textContent = 'Загружаем…';
+  const result = await apiUpload('/profiles/' + profileId + '/photo', file);
+  photoInput.value = '';
+  if (!result.ok) {
+    photoError.textContent = errorText(result);
+    photoError.hidden = false;
+    showPhoto(currentProfile);
+    return;
+  }
+  currentProfile.photo = result.data.photo;
+  showPhoto(currentProfile);
+});
+
+document.getElementById('photo-delete').addEventListener('click', async function () {
+  const result = await api('/profiles/' + profileId + '/photo', { method: 'DELETE' });
+  if (result.ok) {
+    currentProfile.photo = null;
+    showPhoto(currentProfile);
+  }
+});
 
 function showMutual(telegram) {
   interestBtn.hidden = true;
@@ -117,6 +171,12 @@ interestBtn.addEventListener('click', async function () {
   const result = await api('/interests', { method: 'POST', body: { to_id: profileId } });
   interestBtn.disabled = false;
 
+  if (result.status === 402) {
+    // лимит бесплатных отметок на сегодня
+    interestBtn.hidden = true;
+    document.getElementById('limit-block').hidden = false;
+    return;
+  }
   if (!result.ok) {
     actionError.textContent = errorText(result);
     actionError.hidden = false;

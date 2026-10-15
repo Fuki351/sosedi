@@ -22,6 +22,7 @@
         <a href="catalog.html" class="active">Анкеты</a>
         <a href="index.html#how">Как это работает</a>
         <a href="about.html">О проекте</a>
+        <a href="premium.html" class="menu__plus">★ Соседи+</a>
         <a href="login.html" id="login-link">Войти</a>
         <a href="anketa.html" class="btn btn--small">Создать анкету</a>
       </nav>
@@ -51,15 +52,24 @@
       <!-- заполняет js/profile.js данными с сервера -->
       <div class="profile" id="profile" hidden>
         <section class="profile__card">
-          <div class="person">
-            <span class="avatar avatar--big" id="p-avatar"></span>
-            <div>
-              <div class="profile__name-row">
-                <h1 id="p-name"></h1>
-              </div>
-              <p class="person__info" id="p-course"></p>
-            </div>
+          <!-- фото анкеты (или цветная заглушка с буквой) -->
+          <div class="profile__photo" id="p-photo"></div>
+
+          <!-- только для своей анкеты: загрузить или убрать фото -->
+          <div class="photo-edit" id="photo-edit" hidden>
+            <label class="btn btn--light btn--small">
+              <span id="photo-btn-text">Загрузить фото</span>
+              <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" hidden>
+            </label>
+            <button type="button" class="btn btn--light btn--small" id="photo-delete" hidden>Убрать фото</button>
+            <p class="form-error" id="photo-error" hidden></p>
           </div>
+
+          <div class="profile__name-row">
+            <h1 id="p-name"></h1>
+            <span class="plus-badge plus-badge--inline" id="p-plus" hidden>★ Соседи+</span>
+          </div>
+          <p class="person__info" id="p-course"></p>
 
           <dl class="profile__info">
             <div><dt>Ищет</dt><dd id="p-housing"></dd></div>
@@ -86,6 +96,13 @@
             </div>
 
             <p class="form-error" id="action-error" hidden></p>
+
+            <!-- закончились бесплатные отметки на сегодня -->
+            <div class="status status--gold" id="limit-block" hidden>
+              <p><b>На сегодня бесплатные отметки закончились</b></p>
+              <p>Без подписки можно отметить 5 анкет в сутки. С «Соседи+» — без ограничений, и видно, кто отметил тебя.</p>
+              <a href="premium.html" class="btn btn--gold btn--small">Подключить Соседи+</a>
+            </div>
 
             <div class="profile__small-buttons">
               <button type="button" class="btn btn--light" id="hide-btn">Скрыть</button>

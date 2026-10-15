@@ -1764,3 +1764,588 @@ code {
     padding: 20px;
   }
 }
+
+/* =====================================================================
+   Обновление 2: фото, подписка «Соседи+», лёгкий редизайн
+   ===================================================================== */
+:root {
+  --gold: #F2B705;
+  --gold-hover: #E0A800;
+  --gold-text: #7A5300;
+  --gold-bg: #FFF6D6;
+  --shadow: 0 1px 2px rgba(10, 42, 122, 0.06), 0 8px 24px -12px rgba(10, 42, 122, 0.18);
+  --shadow-hover: 0 2px 4px rgba(10, 42, 122, 0.06), 0 18px 36px -14px rgba(10, 42, 122, 0.28);
+}
+
+/* шапка прилипает и слегка размывает фон под собой */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+}
+
+.menu a.menu__plus {
+  color: var(--gold-text);
+  padding: 6px 12px;
+  background: var(--gold-bg);
+  border-radius: 999px;
+}
+
+.menu a.menu__plus:hover,
+.menu a.menu__plus.active {
+  color: var(--gold-text);
+  background: #FFEDB0;
+}
+
+/* кнопки */
+.btn {
+  border-radius: 14px;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+
+.btn:not(.btn--light):not(.btn--white):not(.btn--danger) {
+  box-shadow: 0 6px 16px -8px rgba(26, 92, 229, 0.7);
+}
+
+.btn--gold {
+  background: var(--gold);
+  color: #3A2800;
+}
+
+.btn--gold:not(.btn--light) {
+  box-shadow: 0 6px 16px -8px rgba(200, 140, 0, 0.8);
+}
+
+.btn--gold:hover {
+  background: var(--gold-hover);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* значок подписки */
+.plus-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--gold);
+  color: #3A2800;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.plus-badge--inline {
+  font-size: 12px;
+  padding: 3px 9px;
+}
+
+/* ===== Аватарки ===== */
+.avatar--photo {
+  object-fit: cover;
+  background: var(--light-blue);
+}
+
+.avatar--letter {
+  color: rgba(10, 42, 122, 0.75);
+}
+
+.avatar--small {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  font-size: 17px;
+}
+
+/* ===== Карточка в каталоге: фото сверху ===== */
+.person-card {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.person-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.person-card--plus {
+  border-color: #F3D57A;
+}
+
+.person-card__cover {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  aspect-ratio: 4 / 3;
+  background: var(--light-blue);
+  overflow: hidden;
+}
+
+.person-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+
+.person-card:hover .person-card__cover img {
+  transform: scale(1.03);
+}
+
+.person-card__letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(10, 42, 122, 0.55);
+  font-size: 72px;
+  font-weight: 800;
+}
+
+.person-card__cover .plus-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+
+.person-card__cover .match-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.25);
+}
+
+.match-badge--low {
+  background: #FFFFFF;
+}
+
+.person-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px 20px;
+}
+
+.person-card__body .person__info {
+  margin-top: -8px;
+}
+
+/* ===== Карточка соседа: большое фото ===== */
+.profile__card {
+  box-shadow: var(--shadow);
+}
+
+.profile__match {
+  box-shadow: var(--shadow);
+}
+
+.profile__photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  margin: -8px -8px 20px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--light-blue);
+}
+
+.profile__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile__photo span {
+  color: rgba(10, 42, 122, 0.55);
+  font-size: 110px;
+  font-weight: 800;
+}
+
+.photo-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -8px 0 20px;
+}
+
+.photo-edit .form-error {
+  flex-basis: 100%;
+}
+
+label.btn input[type="file"] {
+  display: none;
+}
+
+/* ===== Выбор фото в анкете ===== */
+.photo-pick {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 8px 0 24px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px dashed #C9D6F2;
+  border-radius: 16px;
+}
+
+.photo-pick__preview {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  font-size: 34px;
+}
+
+.photo-pick__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-pick__title {
+  font-weight: 700;
+}
+
+.photo-pick__buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ===== Статусы ===== */
+.status--gold {
+  background: var(--gold-bg);
+}
+
+.status--gold .btn {
+  margin-top: 12px;
+}
+
+/* ===== Вход / регистрация ===== */
+.login-card {
+  box-shadow: var(--shadow);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+  background: var(--bg);
+  border-radius: 14px;
+}
+
+.auth-tabs__btn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.auth-tabs__btn--active {
+  background: var(--white);
+  color: var(--navy);
+  box-shadow: 0 1px 3px rgba(10, 42, 122, 0.12);
+}
+
+/* ===== Мои отметки ===== */
+.my-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  grid-auto-flow: row dense;
+  align-items: start;
+}
+
+.my-card {
+  grid-column: 1;
+  box-shadow: var(--shadow);
+}
+
+.my-card--wide {
+  grid-column: 2;
+}
+
+.my-list__item {
+  align-items: center;
+}
+
+.my-list__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.locked {
+  padding: 20px;
+  background: var(--gold-bg);
+  border-radius: 16px;
+  text-align: center;
+}
+
+.locked p + p {
+  margin-top: 4px;
+}
+
+.locked .btn {
+  margin-top: 14px;
+}
+
+.locked__faces {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.profile--mine .profile__match {
+  display: none;
+}
+
+.profile--mine .profile__card {
+  flex: 0 1 420px;
+  margin: 0 auto;
+}
+
+.locked__face {
+  width: 44px;
+  height: 44px;
+  margin: 0 -6px;
+  border: 3px solid var(--gold-bg);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+/* ===== Страница «Соседи+» ===== */
+.plus-hero {
+  max-width: 720px;
+}
+
+.plus-hero .page__title {
+  margin-top: 16px;
+}
+
+.plus-hero .status {
+  margin-top: 20px;
+}
+
+.plus-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 36px;
+}
+
+.plus-col {
+  padding: 28px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-big);
+  box-shadow: var(--shadow);
+}
+
+.plus-col--gold {
+  background: linear-gradient(160deg, #FFFBEA, #FFF1C2);
+  border-color: #F3D57A;
+}
+
+.plus-col h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.plus-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plus-list li {
+  position: relative;
+  padding-left: 28px;
+}
+
+.plus-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--green);
+  font-weight: 800;
+}
+
+.plus-list--gold li::before {
+  content: "★";
+  color: #C98F00;
+}
+
+.plus-list li.plus-list__no {
+  color: var(--muted);
+}
+
+.plus-list li.plus-list__no::before {
+  content: "–";
+  color: var(--muted);
+}
+
+.plus-plans__title {
+  margin: 48px 0 20px;
+  font-size: 28px;
+}
+
+.plus-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 320px));
+  gap: 20px;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 28px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-big);
+  box-shadow: var(--shadow);
+}
+
+.plan--best {
+  border: 2px solid var(--gold);
+}
+
+.plan__flag {
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  padding: 3px 10px;
+  background: var(--gold);
+  color: #3A2800;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.plan__title {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.plan__price {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.plan__note {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.plan .btn {
+  margin-top: 20px;
+}
+
+/* окно оплаты */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(10, 20, 50, 0.45);
+}
+
+.modal__card {
+  width: 100%;
+  max-width: 440px;
+  padding: 28px;
+  background: var(--white);
+  border-radius: var(--radius-big);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.4);
+}
+
+.modal__card h2 {
+  font-size: 24px;
+}
+
+.modal__sum {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal__buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+  .my-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .my-card,
+  .my-card--wide {
+    grid-column: 1;
+  }
+
+  .plus-compare {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu a.menu__plus {
+    align-self: flex-start;
+  }
+
+  .photo-pick {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal__buttons {
+    flex-direction: column;
+  }
+}
+
+/* мягкий фон первого экрана */
+.hero {
+  background:
+    radial-gradient(600px 300px at 85% 30%, rgba(47, 123, 255, 0.14), transparent 70%),
+    radial-gradient(500px 260px at 10% 90%, rgba(242, 183, 5, 0.10), transparent 70%);
+}
+
+.hero__card {
+  box-shadow: var(--shadow-hover);
+}

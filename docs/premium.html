@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Соседи+ — подписка</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <svg width="24" height="30" viewBox="200 62 100 122" fill="none">
+          <path d="M214 170 V108 L250 76 L286 108 V170 Z" stroke="#2F7BFF" stroke-width="22" stroke-linejoin="round"/>
+        </svg>
+        Соседи
+      </a>
+      <nav class="menu" id="menu">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html#how">Как это работает</a>
+        <a href="about.html">О проекте</a>
+        <a href="premium.html" class="menu__plus active">★ Соседи+</a>
+        <a href="login.html" id="login-link">Войти</a>
+        <a href="anketa.html" class="btn btn--small">Создать анкету</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Открыть меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <section class="plus-hero">
+        <span class="plus-badge">★ Соседи+</span>
+        <h1 class="page__title">Находи соседа быстрее</h1>
+        <p class="page__desc">Основное на сайте бесплатно навсегда: анкета, совместимость, взаимные контакты. Подписка добавляет удобства тем, кому нужно найти соседа поскорее.</p>
+        <p class="status status--green" id="plus-active" hidden></p>
+      </section>
+
+      <div class="plus-compare">
+        <div class="plus-col">
+          <h2>Бесплатно</h2>
+          <ul class="plus-list">
+            <li>Анкета с фото</li>
+            <li>Процент совместимости и разбор по вопросам</li>
+            <li>Telegram при взаимном интересе</li>
+            <li><span id="free-limit">5</span> отметок «Интересно» в сутки</li>
+            <li class="plus-list__no">Видно только, сколько человек тебя отметили</li>
+          </ul>
+        </div>
+        <div class="plus-col plus-col--gold">
+          <h2>Соседи+</h2>
+          <ul class="plus-list plus-list--gold">
+            <li>Всё, что в бесплатной версии</li>
+            <li><b>Кто отметил тебя</b> — имена, фото и совместимость</li>
+            <li><b>Без лимита</b> отметок «Интересно»</li>
+            <li><b>Анкета выше в поиске</b> — первые места в каталоге</li>
+            <li>Значок ★ Соседи+ на анкете</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="plus-plans__title">Тарифы</h2>
+      <div class="plus-plans" id="plans"></div>
+      <p class="form-error" id="plus-error" hidden></p>
+
+      <!-- окно демо-оплаты -->
+      <div class="modal" id="pay-modal" hidden>
+        <div class="modal__card">
+          <h2>Оплата подписки</h2>
+          <p class="modal__sum" id="pay-sum"></p>
+          <p class="info-bar">Это <b>демо-режим</b>: деньги не списываются, подписка включится сразу. В рабочей версии здесь будет переход на платёжный сервис (например, ЮKassa).</p>
+          <div class="modal__buttons">
+            <button type="button" class="btn btn--gold" id="pay-confirm">Оплатить (демо)</button>
+            <button type="button" class="btn btn--light" id="pay-cancel">Отмена</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__links">
+        <a href="catalog.html">Анкеты</a>
+        <a href="index.html">Главная</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/premium.js"></script>
+</body>
+</html>

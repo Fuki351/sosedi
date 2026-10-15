@@ -22,6 +22,7 @@
         <a href="catalog.html">Анкеты</a>
         <a href="index.html#how">Как это работает</a>
         <a href="about.html">О проекте</a>
+        <a href="premium.html" class="menu__plus">★ Соседи+</a>
         <a href="login.html" id="login-link">Войти</a>
         <a href="anketa.html" class="btn btn--small">Создать анкету</a>
       </nav>
@@ -36,23 +37,33 @@
   <main class="page">
     <div class="container">
       <div class="login-card">
-        <h1 class="page__title">Вход</h1>
-        <p class="page__desc">Войди, чтобы видеть совместимость и отмечать анкеты.</p>
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tabs__btn auth-tabs__btn--active" id="tab-login">Вход</button>
+          <button type="button" class="auth-tabs__btn" id="tab-register">Регистрация</button>
+        </div>
+
+        <h1 class="page__title" id="auth-title">Вход</h1>
+        <p class="page__desc" id="auth-desc">Войди, чтобы видеть совместимость и отмечать анкеты.</p>
 
         <form id="login-form" class="login-form" novalidate>
+          <label class="field" id="name-field" hidden>
+            Как тебя зовут
+            <input type="text" id="reg-name" maxlength="40" autocomplete="given-name" placeholder="Например, Аня">
+          </label>
           <label class="field">
             Логин
-            <input type="text" id="login" autocomplete="username">
+            <input type="text" id="login" autocomplete="username" placeholder="латиница, цифры и _">
           </label>
           <label class="field">
             Пароль
             <input type="password" id="password" autocomplete="current-password">
+            <span class="field__hint" id="password-hint" hidden>Минимум 6 символов</span>
           </label>
           <p class="form-error" id="login-error" hidden></p>
           <button type="submit" class="btn" id="login-btn">Войти</button>
         </form>
 
-        <div class="info-bar">
+        <div class="info-bar" id="demo-accounts">
           <p><b>Тестовые аккаунты</b></p>
           <p><code>ivan</code> / <code>qwerty</code> — уже есть анкета</p>
           <p><code>maria</code> / <code>maria1</code> — анкеты пока нет</p>
