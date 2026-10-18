@@ -41,6 +41,8 @@
         <h1 class="page__title">Находи соседа быстрее</h1>
         <p class="page__desc">Основное на сайте бесплатно навсегда: анкета, совместимость, взаимные контакты. Подписка добавляет удобства тем, кому нужно найти соседа поскорее.</p>
         <p class="status status--green" id="plus-active" hidden></p>
+        <p class="status status--blue" id="pay-checking" hidden>Проверяем оплату…</p>
+        <p class="status status--gold" id="pay-failed" hidden></p>
       </section>
 
       <div class="plus-compare">
@@ -75,7 +77,7 @@
         <div class="modal__card">
           <h2>Оплата подписки</h2>
           <p class="modal__sum" id="pay-sum"></p>
-          <p class="info-bar">Это <b>демо-режим</b>: деньги не списываются, подписка включится сразу. В рабочей версии здесь будет переход на платёжный сервис (например, ЮKassa).</p>
+          <p class="info-bar" id="pay-note">Это <b>демо-режим</b>: деньги не списываются, подписка включится сразу.</p>
           <div class="modal__buttons">
             <button type="button" class="btn btn--gold" id="pay-confirm">Оплатить (демо)</button>
             <button type="button" class="btn btn--light" id="pay-cancel">Отмена</button>

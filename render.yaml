@@ -14,3 +14,7 @@ services:
         value: Europe/Moscow
       - key: DATABASE_URL
         sync: false   # адрес базы Neon вставляем руками в настройках Render
+      - key: YOOKASSA_SHOP_ID
+        sync: false   # shopId магазина ЮKassa
+      - key: YOOKASSA_SECRET_KEY
+        sync: false   # секретный ключ ЮKassa (тестовый начинается с test_)

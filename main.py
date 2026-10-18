@@ -8,7 +8,7 @@ import re
 import secrets
 from datetime import datetime, timedelta
 
-from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps
@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy import delete, func, or_, select
 
 import data
+import yookassa
 from db import (Interest, Payment, Photo, Profile, Report, SessionLocal, Token, User,
                 check_password, hash_password, init_db)
 
@@ -649,6 +650,40 @@ def my_interests(authorization: str = Header(None), s=Depends(get_db)):
 
 
 # ============ Монетизация: подписка «Соседи+» ============
+# Если в окружении есть ключи ЮKassa — настоящая оплата (в тестовом магазине — тестовыми картами).
+# Если ключей нет — демо-режим: подписка включается сразу, деньги не списываются.
+
+def activate_payment(s, payment):
+    """Включаем подписку за оплаченный платёж. Повторный вызов ничего не сделает"""
+    if payment.status == "succeeded":
+        return
+    plan = data.PLANS[payment.plan]
+    user = s.get(User, payment.login)
+    start = user.premium_until if is_premium(user) else datetime.now()
+    user.premium_until = start + timedelta(days=plan["days"])  # продлеваем, если уже есть
+    payment.status = "succeeded"
+    s.commit()
+
+
+def sync_payment(s, payment):
+    """Спрашиваем у ЮKassa статус платежа и обновляем его у себя"""
+    if payment.yk_id is None or payment.status in ("succeeded", "canceled"):
+        return payment.status
+    info = yookassa.get_payment(payment.yk_id)
+    if info["status"] == "succeeded":
+        activate_payment(s, payment)
+    elif info["status"] == "canceled":
+        payment.status = "canceled"
+        s.commit()
+    return payment.status
+
+
+def site_origin(request):
+    """Адрес сайта, на который ЮKassa вернёт человека после оплаты"""
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host", "localhost:3000")
+    proto = request.headers.get("x-forwarded-proto") or ("http" if host.startswith(("localhost", "127.")) else "https")
+    return f"{proto}://{host}"
+
 
 @app.get("/api/premium")
 def premium_info(authorization: str = Header(None), s=Depends(get_db)):
@@ -658,6 +693,8 @@ def premium_info(authorization: str = Header(None), s=Depends(get_db)):
         "free_daily_interests": data.FREE_DAILY_INTERESTS,
         "active": is_premium(user),
         "until": fmt(user.premium_until) if is_premium(user) else None,
+        "payment_mode": "yookassa" if yookassa.enabled() else "demo",
+        "test_mode": yookassa.is_test(),
     }
 
 
@@ -666,20 +703,75 @@ class CheckoutIn(BaseModel):
 
 
 @app.post("/api/premium/checkout")
-def checkout(body: CheckoutIn, authorization: str = Header(None), s=Depends(get_db)):
-    """Демо-оплата: настоящие деньги не списываются.
-    В рабочей версии здесь будет переход на платёжный сервис (например, ЮKassa),
-    а подписка включится, когда сервис пришлёт подтверждение оплаты."""
+def checkout(body: CheckoutIn, request: Request, authorization: str = Header(None), s=Depends(get_db)):
     user = require_user(s, authorization)
     plan = data.PLANS.get(body.plan)
     if plan is None:
         raise HTTPException(status_code=400, detail="Неизвестный тариф")
 
-    start = user.premium_until if is_premium(user) else datetime.now()
-    user.premium_until = start + timedelta(days=plan["days"])  # продлеваем, если уже есть
-    s.add(Payment(login=user.login, plan=body.plan, amount=plan["price"]))
+    if not yookassa.enabled():
+        # демо-режим: сразу включаем подписку
+        payment = Payment(login=user.login, plan=body.plan, amount=plan["price"], status="pending", demo=True)
+        s.add(payment)
+        s.flush()
+        activate_payment(s, payment)
+        return {"mode": "demo", "active": True, "until": fmt(user.premium_until),
+                "message": "Подписка «Соседи+» включена"}
+
+    # ЮKassa: создаём платёж у себя, потом в ЮKassa, и отправляем человека на страницу оплаты
+    payment = Payment(login=user.login, plan=body.plan, amount=plan["price"], status="pending", demo=False)
+    s.add(payment)
     s.commit()
-    return {"active": True, "until": fmt(user.premium_until), "message": "Подписка «Соседи+» включена"}
+    return_url = f"{site_origin(request)}/site/premium.html?payment={payment.id}"
+    try:
+        yk_id, confirmation_url = yookassa.create_payment(
+            plan["price"],
+            f"Подписка «Соседи+» — {plan['title']}",
+            return_url,
+            {"payment_id": str(payment.id), "login": user.login, "plan": body.plan},
+        )
+    except yookassa.YooKassaError as e:
+        payment.status = "canceled"
+        s.commit()
+        print("ЮKassa:", e)
+        raise HTTPException(status_code=502, detail="Платёжный сервис сейчас недоступен, попробуй позже")
+    payment.yk_id = yk_id
+    s.commit()
+    return {"mode": "yookassa", "confirmation_url": confirmation_url, "payment_id": payment.id}
+
+
+@app.get("/api/premium/payments/{payment_id}")
+def payment_status(payment_id: int, authorization: str = Header(None), s=Depends(get_db)):
+    """Человек вернулся со страницы ЮKassa — проверяем, прошла ли оплата"""
+    user = require_user(s, authorization)
+    payment = s.get(Payment, payment_id)
+    if payment is None or payment.login != user.login:
+        raise HTTPException(status_code=404, detail="Платёж не найден")
+    try:
+        status = sync_payment(s, payment)
+    except yookassa.YooKassaError as e:
+        print("ЮKassa:", e)
+        status = payment.status
+    return {"status": status, "premium": is_premium(user), "until": fmt(user.premium_until) if is_premium(user) else None}
+
+
+@app.post("/api/yookassa/webhook")
+async def yookassa_webhook(request: Request, s=Depends(get_db)):
+    """Уведомление от ЮKassa об изменении платежа.
+    Телу уведомления не доверяем: берём id и сами спрашиваем статус у ЮKassa"""
+    try:
+        body = await request.json()
+        yk_id = body["object"]["id"]
+    except Exception:
+        raise HTTPException(status_code=400, detail="Неверное уведомление")
+    payment = s.scalar(select(Payment).where(Payment.yk_id == yk_id))
+    if payment is not None and yookassa.enabled():
+        try:
+            sync_payment(s, payment)
+        except yookassa.YooKassaError as e:
+            print("ЮKassa:", e)
+            raise HTTPException(status_code=502, detail="Не удалось проверить платёж")  # ЮKassa пришлёт уведомление ещё раз
+    return {"ok": True}
 
 
 # ============ Жалобы ============

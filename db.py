@@ -94,14 +94,15 @@ class Report(Base):
 
 
 class Payment(Base):
-    """Оплаты подписки «Соседи+» (пока демо-режим, без настоящих денег)"""
+    """Оплаты подписки «Соседи+»: через ЮKassa или в демо-режиме"""
     __tablename__ = "payments"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     login: Mapped[str] = mapped_column(ForeignKey("users.login", ondelete="CASCADE"))
     plan: Mapped[str] = mapped_column(String(20))
     amount: Mapped[int] = mapped_column(Integer)
-    status: Mapped[str] = mapped_column(String(20), default="paid")
+    status: Mapped[str] = mapped_column(String(20), default="paid")   # pending / succeeded / canceled / paid (демо)
     demo: Mapped[bool] = mapped_column(Boolean, default=True)
+    yk_id: Mapped[str | None] = mapped_column(String(64), nullable=True)  # id платежа в ЮKassa
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
 
@@ -126,16 +127,18 @@ NEW_COLUMNS = [
     ("profiles", "seek_gender", "VARCHAR(3)"),
     ("profiles", "university", "VARCHAR(80)"),
     ("profiles", "updated_at", "TIMESTAMP"),
+    ("payments", "yk_id", "VARCHAR(64)"),
 ]
 
 
 def migrate():
     """Обновляем уже существующую базу без потери данных:
     добавляем новые столбцы и дописываем ответы на новые вопросы."""
-    existing = {c["name"] for c in inspect(engine).get_columns("profiles")}
+    inspector = inspect(engine)
+    existing = {(t, c["name"]) for t in ("profiles", "payments") for c in inspector.get_columns(t)}
     with engine.begin() as conn:
         for table, column, sql_type in NEW_COLUMNS:
-            if column not in existing:
+            if (table, column) not in existing:
                 conn.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {sql_type}'))
 
     with SessionLocal() as s:

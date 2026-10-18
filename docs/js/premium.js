@@ -5,6 +5,7 @@ const plusError = document.getElementById('plus-error');
 const modal = document.getElementById('pay-modal');
 let chosenPlan = null;
 let plans = [];
+let paymentMode = 'demo';
 
 function rub(n) {
   return n.toLocaleString('ru-RU') + ' ₽';
@@ -25,6 +26,17 @@ async function loadPlans() {
   }
   const info = result.data;
   plans = info.plans;
+  paymentMode = info.payment_mode;
+  const note = document.getElementById('pay-note');
+  const confirmBtn = document.getElementById('pay-confirm');
+  if (paymentMode === 'yookassa') {
+    note.innerHTML = 'Оплата через <b>ЮKassa</b>: откроется страница оплаты, после неё вернёшься сюда.' +
+      (info.test_mode ? ' Сейчас магазин в <b>тестовом режиме</b> — плати тестовой картой 5555 5555 5555 4477, срок любой будущий, CVC любой.' : '');
+    confirmBtn.textContent = 'Перейти к оплате';
+  } else {
+    note.innerHTML = 'Это <b>демо-режим</b>: деньги не списываются, подписка включится сразу.';
+    confirmBtn.textContent = 'Оплатить (демо)';
+  }
   document.getElementById('free-limit').textContent = info.free_daily_interests;
 
   const active = document.getElementById('plus-active');
@@ -72,6 +84,11 @@ document.getElementById('pay-confirm').addEventListener('click', async function 
   const btn = document.getElementById('pay-confirm');
   btn.disabled = true;
   const result = await api('/premium/checkout', { method: 'POST', body: { plan: chosenPlan.id } });
+  if (result.ok && result.data.mode === 'yookassa') {
+    // уходим на страницу оплаты ЮKassa, оттуда вернёмся с ?payment=номер
+    window.location.href = result.data.confirmation_url;
+    return;
+  }
   btn.disabled = false;
   modal.hidden = true;
   if (!result.ok) {
@@ -79,8 +96,68 @@ document.getElementById('pay-confirm').addEventListener('click', async function 
     plusError.hidden = false;
     return;
   }
-  loadPlans();
+  // вернулись со страницы ЮKassa: спрашиваем сервер, прошла ли оплата.
+// Подтверждение может прийти не сразу, поэтому проверяем несколько раз
+async function checkReturnedPayment() {
+  const paymentId = new URLSearchParams(window.location.search).get('payment');
+  if (!paymentId || !getToken()) return;
+  const checking = document.getElementById('pay-checking');
+  const failed = document.getElementById('pay-failed');
+  checking.hidden = false;
+  for (let i = 0; i < 10; i++) {
+    const result = await api('/premium/payments/' + paymentId);
+    if (result.ok && result.data.status === 'succeeded') {
+      checking.hidden = true;
+      history.replaceState(null, '', 'premium.html');
+      loadPlans();
+      return;
+    }
+    if (result.ok && result.data.status === 'canceled') {
+      checking.hidden = true;
+      failed.textContent = 'Оплата не прошла или была отменена. Деньги не списаны — можно попробовать ещё раз.';
+      failed.hidden = false;
+      return;
+    }
+    await new Promise(function (resolve) { setTimeout(resolve, 2000); });
+  }
+  checking.hidden = true;
+  failed.textContent = 'Оплата ещё обрабатывается. Обнови страницу через минуту — подписка включится автоматически.';
+  failed.hidden = false;
+}
+
+loadPlans();
+checkReturnedPayment();
   window.scrollTo(0, 0);
 });
 
+// вернулись со страницы ЮKassa: спрашиваем сервер, прошла ли оплата.
+// Подтверждение может прийти не сразу, поэтому проверяем несколько раз
+async function checkReturnedPayment() {
+  const paymentId = new URLSearchParams(window.location.search).get('payment');
+  if (!paymentId || !getToken()) return;
+  const checking = document.getElementById('pay-checking');
+  const failed = document.getElementById('pay-failed');
+  checking.hidden = false;
+  for (let i = 0; i < 10; i++) {
+    const result = await api('/premium/payments/' + paymentId);
+    if (result.ok && result.data.status === 'succeeded') {
+      checking.hidden = true;
+      history.replaceState(null, '', 'premium.html');
+      loadPlans();
+      return;
+    }
+    if (result.ok && result.data.status === 'canceled') {
+      checking.hidden = true;
+      failed.textContent = 'Оплата не прошла или была отменена. Деньги не списаны — можно попробовать ещё раз.';
+      failed.hidden = false;
+      return;
+    }
+    await new Promise(function (resolve) { setTimeout(resolve, 2000); });
+  }
+  checking.hidden = true;
+  failed.textContent = 'Оплата ещё обрабатывается. Обнови страницу через минуту — подписка включится автоматически.';
+  failed.hidden = false;
+}
+
 loadPlans();
+checkReturnedPayment();
