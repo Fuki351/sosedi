@@ -20,6 +20,7 @@ function setMode(m) {
     : 'Войди, чтобы видеть совместимость и отмечать анкеты.';
   document.getElementById('name-field').hidden = !reg;
   document.getElementById('password-hint').hidden = !reg;
+  document.getElementById('consent-field').hidden = !reg;
   document.getElementById('demo-accounts').hidden = reg;
   document.getElementById('login-btn').textContent = reg ? 'Создать аккаунт' : 'Войти';
   document.getElementById('password').autocomplete = reg ? 'new-password' : 'current-password';
@@ -39,6 +40,12 @@ loginForm.addEventListener('submit', async function (event) {
 
   if (login === '' || password === '' || (mode === 'register' && name === '')) {
     loginError.textContent = mode === 'register' ? 'Заполни имя, логин и пароль' : 'Введи логин и пароль';
+    loginError.hidden = false;
+    return;
+  }
+
+  if (mode === 'register' && !document.getElementById('consent').checked) {
+    loginError.textContent = 'Отметь согласие с офертой и политикой конфиденциальности';
     loginError.hidden = false;
     return;
   }

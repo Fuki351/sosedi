@@ -168,6 +168,9 @@ def is_mutual(s, id_a, id_b):
     return has_interest(s, id_a, id_b) and has_interest(s, id_b, id_a)
 
 
+DEMO_LOGINS = {u["login"] for u in data.DEMO_USERS}
+
+
 def short_card(p, my, premium_set):
     """Анкета для списка: без Telegram и без ответов"""
     if p.housing == "flat":
@@ -186,6 +189,8 @@ def short_card(p, my, premium_set):
         "gender": p.gender,
         "photo": photo_url(p),
         "premium": p.owner in premium_set,
+        # примеры анкет, которые сайт создаёт сам при первом запуске
+        "demo": p.owner is None or p.owner in DEMO_LOGINS,
         "match": compatibility(my.answers, p.answers) if my is not None else None,
     }
 

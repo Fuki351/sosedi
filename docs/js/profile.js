@@ -35,6 +35,8 @@ function fill(p) {
   showPhoto(p);
   setText('p-name', p.name);
   document.getElementById('p-plus').hidden = !p.premium;
+  document.getElementById('p-demo').hidden = !p.demo || p.premium;
+  document.getElementById('demo-note').hidden = !p.demo || p.is_mine;
   setText('p-course', p.course + ' курс');
   setText('p-housing', p.housing_name);
   setText('p-university', p.university || '—');

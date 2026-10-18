@@ -59,12 +59,16 @@
             <input type="password" id="password" autocomplete="current-password">
             <span class="field__hint" id="password-hint" hidden>Минимум 6 символов</span>
           </label>
+          <label class="checkbox" id="consent-field" hidden>
+            <input type="checkbox" id="consent">
+            <span>Принимаю <a href="offer.html" target="_blank">оферту</a> и даю согласие на обработку данных по <a href="privacy.html" target="_blank">политике конфиденциальности</a></span>
+          </label>
           <p class="form-error" id="login-error" hidden></p>
           <button type="submit" class="btn" id="login-btn">Войти</button>
         </form>
 
         <div class="info-bar" id="demo-accounts">
-          <p><b>Тестовые аккаунты</b></p>
+          <p><b>Демо-доступ — посмотреть сайт без регистрации</b></p>
           <p><code>ivan</code> / <code>qwerty</code> — уже есть анкета</p>
           <p><code>maria</code> / <code>maria1</code> — анкеты пока нет</p>
         </div>
@@ -74,10 +78,16 @@
 
   <footer class="footer">
     <div class="container footer__inner">
-      <p>Соседи — учебный проект команды 007, «Первый БИТ», 2026</p>
+      <div class="footer__legal">
+        <p>© 2026 Соседи — сервис подбора соседа для студентов</p>
+        <p class="footer__small">Самозанятый Толгуров Ибрагим Расулович, ИНН 071091288767 · <a href="mailto:tolgurov08@bk.ru">tolgurov08@bk.ru</a> · <a href="https://t.me/Fuki_0202">@Fuki_0202</a></p>
+      </div>
       <div class="footer__links">
         <a href="catalog.html">Анкеты</a>
-        <a href="index.html">Главная</a>
+        <a href="premium.html">Соседи+</a>
+        <a href="offer.html">Оферта</a>
+        <a href="privacy.html">Конфиденциальность</a>
+        <a href="contacts.html">Контакты</a>
       </div>
     </div>
   </footer>

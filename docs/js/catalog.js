@@ -103,7 +103,8 @@ function render() {
     const cover = p.photo
       ? `<img src="${p.photo}" alt="${esc(p.name)}" loading="lazy">`
       : `<span class="person-card__letter" style="background:${avatarColor(p.id)}">${esc(p.name[0])}</span>`;
-    const premiumHtml = p.premium ? '<span class="plus-badge">★ Соседи+</span>' : '';
+    const premiumHtml = p.premium ? '<span class="plus-badge">★ Соседи+</span>'
+      : (p.demo ? '<span class="demo-badge">Пример анкеты</span>' : '');
 
     cardsList.innerHTML += `
       <li class="person-card${p.premium ? ' person-card--plus' : ''}">
