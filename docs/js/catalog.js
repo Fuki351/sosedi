@@ -132,27 +132,7 @@ function render() {
 // при любом изменении фильтров заново спрашиваем сервер
 function reload() {
   shown = 6;
-  // если вошли — подставляем «кого ищу» из своей анкеты; фильтр по % — только когда есть своя анкета
-async function start() {
-  document.getElementById('match-filter').hidden = true;
-  if (getToken()) {
-    const me = await api('/me');
-    if (me.ok && me.data.profile_id !== null) {
-      document.getElementById('match-filter').hidden = false;
-      if (me.data.seek_gender === 'm' || me.data.seek_gender === 'f') {
-        document.querySelector('input[name="gender"][value="' + me.data.seek_gender + '"]').checked = true;
-      }
-      if (me.data.profile_incomplete) {
-        const hint = document.getElementById('login-hint');
-        hint.innerHTML = 'В анкете появились новые вопросы. <a href="anketa.html?edit=1">Дополни анкету</a>, чтобы тебя находили через фильтры.';
-        hint.hidden = false;
-      }
-    }
-  }
   loadPeople();
-}
-
-start();
 }
 
 document.querySelectorAll('#filters input[type="radio"], #filters input[type="checkbox"], #sort').forEach(function (input) {

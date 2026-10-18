@@ -162,9 +162,9 @@ function showCompare(match, rows) {
     if (row.result === 'no') no++;
     html += `
       <tr>
-        <td>${row.question}</td>
-        <td>${row.me}</td>
-        <td>${row.other}</td>
+        <td>${esc(row.question)}</td>
+        <td>${esc(row.me)}</td>
+        <td>${esc(row.other)}</td>
         <td><span class="result result--${row.result}">${resultText[row.result]}</span></td>
       </tr>`;
   });

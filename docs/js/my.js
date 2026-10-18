@@ -137,11 +137,55 @@ document.getElementById('confirm-yes').addEventListener('click', async function 
     return;
   }
   document.getElementById('confirm-block').hidden = true;
-  loadMy();
+  // удаление аккаунта целиком — с подтверждением паролем
+const deleteForm = document.getElementById('delete-account-form');
+document.getElementById('delete-account-btn').addEventListener('click', function () {
+  deleteForm.hidden = false;
+});
+document.getElementById('delete-cancel').addEventListener('click', function () {
+  deleteForm.hidden = true;
+});
+deleteForm.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const errorBox = document.getElementById('delete-error');
+  const result = await api('/me/delete', { method: 'POST', body: { password: document.getElementById('delete-password').value } });
+  if (!result.ok) {
+    errorBox.textContent = errorText(result);
+    errorBox.hidden = false;
+    return;
+  }
+  localStorage.removeItem('token');
+  localStorage.removeItem('name');
+  window.location.href = 'index.html';
+});
+
+loadMy();
 });
 
 document.getElementById('logout-btn').addEventListener('click', function () {
   logout();
+  window.location.href = 'index.html';
+});
+
+// удаление аккаунта целиком — с подтверждением паролем
+const deleteForm = document.getElementById('delete-account-form');
+document.getElementById('delete-account-btn').addEventListener('click', function () {
+  deleteForm.hidden = false;
+});
+document.getElementById('delete-cancel').addEventListener('click', function () {
+  deleteForm.hidden = true;
+});
+deleteForm.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const errorBox = document.getElementById('delete-error');
+  const result = await api('/me/delete', { method: 'POST', body: { password: document.getElementById('delete-password').value } });
+  if (!result.ok) {
+    errorBox.textContent = errorText(result);
+    errorBox.hidden = false;
+    return;
+  }
+  localStorage.removeItem('token');
+  localStorage.removeItem('name');
   window.location.href = 'index.html';
 });
 

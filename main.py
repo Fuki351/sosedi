@@ -3,6 +3,7 @@
 # Данные хранятся в базе: локально SQLite (файл sosedi.db), на хостинге PostgreSQL (Neon)
 
 import io
+import os
 import random
 import re
 import secrets
@@ -12,13 +13,16 @@ from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, Uplo
 from fastapi.responses import PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps
-from pydantic import BaseModel
+
+Image.MAX_IMAGE_PIXELS = 40_000_000  # защита от «бомб» — крошечных файлов, которые распаковываются в гигантские картинки
+from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, or_, select
 
 import data
 import yookassa
 from db import (Interest, Payment, Photo, Profile, Report, SessionLocal, Token, User,
-                check_password, hash_password, init_db)
+                check_password, hash_password, init_db, needs_rehash, token_hash)
+from security import add_security_headers, rate_limit
 
 app = FastAPI(title="Соседи — API", description="Сервер сайта для подбора соседа")
 init_db()  # создаём таблицы и демо-данные, если база пустая
@@ -54,13 +58,22 @@ def fmt(dt):
     return dt.strftime("%Y-%m-%d %H:%M") if dt else None
 
 
+SESSION_DAYS = 30  # через 30 дней после входа нужно войти заново
+
+
 def current_user(s, authorization):
     """Достаём пользователя по токену из заголовка Authorization: Bearer <токен>"""
-    if not authorization:
+    if not authorization or not authorization.startswith("Bearer "):
         return None
-    token = authorization.replace("Bearer ", "")
-    row = s.get(Token, token)
+    token = authorization[len("Bearer "):].strip()
+    if not token or len(token) > 128:
+        return None
+    row = s.get(Token, token_hash(token))
     if row is None:
+        return None
+    if row.created_at < datetime.now() - timedelta(days=SESSION_DAYS):
+        s.delete(row)  # сессия устарела
+        s.commit()
         return None
     return s.get(User, row.login)
 
@@ -198,49 +211,106 @@ def short_card(p, my, premium_set):
 # ============ Шаг 6. Вход и регистрация ============
 
 def new_token(s, user):
-    token = secrets.token_hex(16)  # случайная строка
-    s.add(Token(token=token, login=user.login))
+    token = secrets.token_urlsafe(32)  # 256 бит случайности
+    s.add(Token(token=token_hash(token), login=user.login))  # в базе — только хеш
     s.commit()
     return token
 
 
+def forbid_demo(user):
+    """Демо-аккаунты с паролями на странице входа — только посмотреть: менять и удалять анкету в них нельзя,
+    иначе любой мог бы испортить пример"""
+    if user.login in DEMO_LOGINS:
+        raise HTTPException(status_code=403, detail="Это демо-аккаунт: менять его анкету нельзя. Зарегистрируйся, чтобы сделать свою")
+
+
+WEAK_PASSWORDS = {"12345678", "123456789", "1234567890", "qwerty123", "password", "password1",
+                  "11111111", "00000000", "qwertyuiop", "йцукенгш", "iloveyou", "abcd1234", "1q2w3e4r"}
+
+
 class LoginIn(BaseModel):
-    login: str
-    password: str
+    login: str = Field(max_length=64)
+    password: str = Field(max_length=128)
 
 
 @app.post("/api/login")
-def login(body: LoginIn, s=Depends(get_db)):
+def login(body: LoginIn, request: Request, s=Depends(get_db)):
+    rate_limit(request, "login", limit=10, per_seconds=300)                       # 10 попыток за 5 минут с адреса
+    rate_limit(request, "login-user", limit=20, per_seconds=3600, key=body.login.strip().lower())  # и на один логин
     user = s.get(User, body.login.strip().lower())
     if user is None or not check_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Неверный логин или пароль")
+    if needs_rehash(user.password_hash):
+        user.password_hash = hash_password(body.password)  # обновляем старый хеш до стойкого
     token = new_token(s, user)
     my = profile_of(s, user)
     return {"token": token, "name": user.name, "profile_id": my.id if my else None}
 
 
 class RegisterIn(BaseModel):
-    login: str
-    password: str
-    name: str
+    login: str = Field(max_length=64)
+    password: str = Field(max_length=128)
+    name: str = Field(max_length=80)
+    consent: bool = False   # согласие на обработку персональных данных
 
 
 @app.post("/api/register", status_code=201)
-def register(body: RegisterIn, s=Depends(get_db)):
+def register(body: RegisterIn, request: Request, s=Depends(get_db)):
+    rate_limit(request, "register", limit=5, per_seconds=3600)  # не больше 5 аккаунтов в час с одного адреса
+    if not body.consent:
+        raise HTTPException(status_code=400, detail="Нужно согласие на обработку персональных данных")
     login_ = body.login.strip().lower()
     name = body.name.strip()
     if not re.fullmatch(r"[a-z0-9_]{3,20}", login_):
         raise HTTPException(status_code=400, detail="Логин: 3–20 символов, латиница, цифры и _")
-    if len(body.password) < 6:
-        raise HTTPException(status_code=400, detail="Пароль — минимум 6 символов")
+    if len(body.password) < 8:
+        raise HTTPException(status_code=400, detail="Пароль — минимум 8 символов")
+    if body.password.lower() in WEAK_PASSWORDS or body.password.lower() == login_:
+        raise HTTPException(status_code=400, detail="Слишком простой пароль, придумай другой")
     if name == "" or len(name) > 40:
         raise HTTPException(status_code=400, detail="Имя должно быть от 1 до 40 символов")
     if s.get(User, login_) is not None:
         raise HTTPException(status_code=409, detail="Такой логин уже занят")
-    user = User(login=login_, name=name, password_hash=hash_password(body.password))
+    user = User(login=login_, name=name, password_hash=hash_password(body.password), consent_at=datetime.now())
     s.add(user)
     s.commit()
     return {"token": new_token(s, user), "name": user.name, "profile_id": None}
+
+
+@app.post("/api/logout")
+def logout(authorization: str = Header(None), s=Depends(get_db)):
+    """Выход: удаляем сессию на сервере, токен больше не действует"""
+    if authorization and authorization.startswith("Bearer "):
+        row = s.get(Token, token_hash(authorization[len("Bearer "):].strip()))
+        if row is not None:
+            s.delete(row)
+            s.commit()
+    return {"ok": True}
+
+
+class DeleteAccountIn(BaseModel):
+    password: str = Field(max_length=128)
+
+
+@app.post("/api/me/delete")
+def delete_account(body: DeleteAccountIn, request: Request, authorization: str = Header(None), s=Depends(get_db)):
+    """Удалить аккаунт со всеми данными (право на отзыв согласия, 152-ФЗ). Нужен пароль"""
+    rate_limit(request, "delete", limit=5, per_seconds=3600)
+    user = require_user(s, authorization)
+    forbid_demo(user)
+    if not check_password(body.password, user.password_hash):
+        raise HTTPException(status_code=403, detail="Неверный пароль")
+    my = profile_of(s, user)
+    if my is not None:
+        s.execute(delete(Interest).where(or_(Interest.from_id == my.id, Interest.to_id == my.id)))
+        s.execute(delete(Report).where(Report.profile_id == my.id))
+        s.execute(delete(Photo).where(Photo.profile_id == my.id))
+        s.delete(my)
+    s.execute(delete(Token).where(Token.login == user.login))
+    s.execute(delete(Payment).where(Payment.login == user.login))  # чеки остаются в ЮKassa и «Мой налог»
+    s.delete(user)
+    s.commit()
+    return {"message": "Аккаунт и все данные удалены"}
 
 
 @app.get("/api/me")
@@ -401,18 +471,18 @@ def get_profile(profile_id: int, authorization: str = Header(None), s=Depends(ge
 
 
 class ProfileIn(BaseModel):
-    name: str
+    name: str = Field(max_length=80)
     course: int
-    telegram: str
-    about: str = ""
-    housing: str
-    budget: str
-    place: str = ""
-    when: str = ""
-    gender: str
-    seek_gender: str
-    university: str = ""
-    answers: list[int]
+    telegram: str = Field(max_length=40)
+    about: str = Field(default="", max_length=600)
+    housing: str = Field(max_length=20)
+    budget: str = Field(max_length=20)
+    place: str = Field(default="", max_length=160)
+    when: str = Field(default="", max_length=40)
+    gender: str = Field(max_length=3)
+    seek_gender: str = Field(max_length=3)
+    university: str = Field(default="", max_length=160)
+    answers: list[int] = Field(max_length=30)
 
 
 def clean_profile(body):
@@ -454,7 +524,8 @@ def clean_profile(body):
 
 
 @app.post("/api/profiles", status_code=201)
-def create_profile(body: ProfileIn, authorization: str = Header(None), s=Depends(get_db)):
+def create_profile(body: ProfileIn, request: Request, authorization: str = Header(None), s=Depends(get_db)):
+    rate_limit(request, "profile", limit=10, per_seconds=3600)
     user = require_user(s, authorization)
     if profile_of(s, user) is not None:
         raise HTTPException(status_code=409, detail="У тебя уже есть анкета — её можно отредактировать")
@@ -465,9 +536,11 @@ def create_profile(body: ProfileIn, authorization: str = Header(None), s=Depends
 
 
 @app.put("/api/profiles/{profile_id}")
-def update_profile(profile_id: int, body: ProfileIn, authorization: str = Header(None), s=Depends(get_db)):
+def update_profile(profile_id: int, body: ProfileIn, request: Request, authorization: str = Header(None), s=Depends(get_db)):
     """Редактирование своей анкеты: фото, отметки и подписка сохраняются"""
+    rate_limit(request, "profile", limit=30, per_seconds=3600)
     user = require_user(s, authorization)
+    forbid_demo(user)
     p = s.get(Profile, profile_id)
     if p is None:
         raise HTTPException(status_code=404, detail="Анкета не найдена")
@@ -483,6 +556,7 @@ def update_profile(profile_id: int, body: ProfileIn, authorization: str = Header
 @app.delete("/api/profiles/{profile_id}")
 def delete_profile(profile_id: int, authorization: str = Header(None), s=Depends(get_db)):
     user = require_user(s, authorization)
+    forbid_demo(user)
     p = s.get(Profile, profile_id)
     if p is None:
         raise HTTPException(status_code=404, detail="Анкета не найдена")
@@ -504,23 +578,29 @@ MAX_PHOTO_BYTES = 8 * 1024 * 1024  # 8 МБ
 
 
 @app.post("/api/profiles/{profile_id}/photo")
-async def upload_photo(profile_id: int, file: UploadFile = File(...),
+async def upload_photo(profile_id: int, request: Request, file: UploadFile = File(...),
                        authorization: str = Header(None), s=Depends(get_db)):
+    rate_limit(request, "photo", limit=20, per_seconds=3600)
     user = require_user(s, authorization)
+    forbid_demo(user)
     p = s.get(Profile, profile_id)
     if p is None:
         raise HTTPException(status_code=404, detail="Анкета не найдена")
     if p.owner != user.login:
         raise HTTPException(status_code=403, detail="Фото можно менять только у своей анкеты")
 
-    raw = await file.read()
+    raw = await file.read(MAX_PHOTO_BYTES + 1)  # больше лимита даже не читаем
     if len(raw) > MAX_PHOTO_BYTES:
         raise HTTPException(status_code=400, detail="Фото больше 8 МБ")
     try:
         img = Image.open(io.BytesIO(raw))
+        if img.format not in ("JPEG", "PNG", "WEBP"):
+            raise ValueError("format")
         img = ImageOps.exif_transpose(img)  # чтобы фото с телефона не было повёрнуто
     except Exception:
         raise HTTPException(status_code=400, detail="Это не картинка. Подойдут JPG, PNG или WEBP")
+    # дальше картинка рисуется заново и сохраняется без метаданных:
+    # из фото пропадают EXIF с геолокацией, моделью телефона и датой съёмки
 
     # обрезаем по центру в квадрат 640×640 и сжимаем в JPEG
     img = ImageOps.fit(img.convert("RGB"), (640, 640), Image.LANCZOS)
@@ -540,6 +620,7 @@ async def upload_photo(profile_id: int, file: UploadFile = File(...),
 @app.delete("/api/profiles/{profile_id}/photo")
 def delete_photo(profile_id: int, authorization: str = Header(None), s=Depends(get_db)):
     user = require_user(s, authorization)
+    forbid_demo(user)
     p = s.get(Profile, profile_id)
     if p is None or p.owner != user.login:
         raise HTTPException(status_code=403, detail="Фото можно менять только у своей анкеты")
@@ -555,8 +636,9 @@ def get_photo(profile_id: int, s=Depends(get_db)):
     if photo is None:
         raise HTTPException(status_code=404, detail="Фото нет")
     # в адресе есть ?v=номер версии, поэтому браузер может долго хранить фото у себя
-    return Response(photo.data, media_type=photo.mime,
-                    headers={"Cache-Control": "public, max-age=31536000, immutable"})
+    return Response(photo.data, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=31536000, immutable",
+                             "Content-Disposition": "inline"})
 
 
 # ============ Шаг 4. Вторая сущность: отметки «Интересно» ============
@@ -566,7 +648,8 @@ class InterestIn(BaseModel):
 
 
 @app.post("/api/interests", status_code=201)
-def create_interest(body: InterestIn, authorization: str = Header(None), s=Depends(get_db)):
+def create_interest(body: InterestIn, request: Request, authorization: str = Header(None), s=Depends(get_db)):
+    rate_limit(request, "interest", limit=60, per_seconds=600)
     user = require_user(s, authorization)
     my = profile_of(s, user)
     if my is None:
@@ -593,10 +676,16 @@ def create_interest(body: InterestIn, authorization: str = Header(None), s=Depen
 
 
 @app.get("/api/interests")
-def list_interests(s=Depends(get_db)):
-    """Все отметки. Вместо id сервер подставляет имена из анкет (ручной аналог JOIN)"""
+def list_interests(authorization: str = Header(None), s=Depends(get_db)):
+    """Отметки, где участвует текущий пользователь. Вместо id сервер подставляет имена (ручной аналог JOIN).
+    Раньше список был открыт всем — это утечка: любой мог узнать, кто кого отметил"""
+    user = require_user(s, authorization)
+    my = profile_of(s, user)
+    if my is None:
+        return []
     result = []
-    for i in s.scalars(select(Interest).order_by(Interest.id)):
+    rows = s.scalars(select(Interest).where(or_(Interest.from_id == my.id, Interest.to_id == my.id)).order_by(Interest.id))
+    for i in rows:
         a = s.get(Profile, i.from_id)
         b = s.get(Profile, i.to_id)
         result.append({
@@ -684,8 +773,12 @@ def sync_payment(s, payment):
 
 
 def site_origin(request):
-    """Адрес сайта, на который ЮKassa вернёт человека после оплаты"""
-    host = request.headers.get("x-forwarded-host") or request.headers.get("host", "localhost:3000")
+    """Адрес сайта, на который ЮKassa вернёт человека после оплаты.
+    Берём из настройки PUBLIC_URL, а не из заголовков запроса, — заголовок Host можно подделать"""
+    public_url = os.environ.get("PUBLIC_URL", "").strip().rstrip("/")
+    if public_url:
+        return public_url
+    host = request.headers.get("host", "localhost:3000")
     proto = request.headers.get("x-forwarded-proto") or ("http" if host.startswith(("localhost", "127.")) else "https")
     return f"{proto}://{host}"
 
@@ -704,11 +797,12 @@ def premium_info(authorization: str = Header(None), s=Depends(get_db)):
 
 
 class CheckoutIn(BaseModel):
-    plan: str
+    plan: str = Field(max_length=20)
 
 
 @app.post("/api/premium/checkout")
 def checkout(body: CheckoutIn, request: Request, authorization: str = Header(None), s=Depends(get_db)):
+    rate_limit(request, "checkout", limit=10, per_seconds=600)
     user = require_user(s, authorization)
     plan = data.PLANS.get(body.plan)
     if plan is None:
@@ -764,9 +858,10 @@ def payment_status(payment_id: int, authorization: str = Header(None), s=Depends
 async def yookassa_webhook(request: Request, s=Depends(get_db)):
     """Уведомление от ЮKassa об изменении платежа.
     Телу уведомления не доверяем: берём id и сами спрашиваем статус у ЮKassa"""
+    rate_limit(request, "webhook", limit=120, per_seconds=60)
     try:
         body = await request.json()
-        yk_id = body["object"]["id"]
+        yk_id = str(body["object"]["id"])[:64]
     except Exception:
         raise HTTPException(status_code=400, detail="Неверное уведомление")
     payment = s.scalar(select(Payment).where(Payment.yk_id == yk_id))
@@ -783,11 +878,12 @@ async def yookassa_webhook(request: Request, s=Depends(get_db)):
 
 class ReportIn(BaseModel):
     profile_id: int
-    reason: str
+    reason: str = Field(max_length=20)
 
 
 @app.post("/api/reports", status_code=201)
-def create_report(body: ReportIn, authorization: str = Header(None), s=Depends(get_db)):
+def create_report(body: ReportIn, request: Request, authorization: str = Header(None), s=Depends(get_db)):
+    rate_limit(request, "report", limit=10, per_seconds=3600)
     user = require_user(s, authorization)
     if s.get(Profile, body.profile_id) is None:
         raise HTTPException(status_code=404, detail="Анкета не найдена")
@@ -807,7 +903,7 @@ async def no_stale_site(request, call_next):
     response = await call_next(request)
     if request.url.path.startswith("/site"):
         response.headers["Cache-Control"] = "no-cache"
-    return response
+    return add_security_headers(request, response)
 
 
 app.mount("/site", StaticFiles(directory="docs", html=True), name="site")

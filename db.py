@@ -3,6 +3,7 @@
 # адрес базы берём из переменной окружения DATABASE_URL.
 
 import hashlib
+import hmac
 import os
 import secrets
 from datetime import datetime
@@ -36,11 +37,13 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(40))
     password_hash: Mapped[str] = mapped_column(String(200))
     premium_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    consent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # когда дал согласие на обработку данных
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
 
 class Token(Base):
-    """Выданные при входе токены: токен -> логин"""
+    """Сессии входа. Храним не сам токен, а его SHA-256:
+    если базу украдут, по ней нельзя будет войти в чужой аккаунт"""
     __tablename__ = "tokens"
     token: Mapped[str] = mapped_column(String(64), primary_key=True)
     login: Mapped[str] = mapped_column(ForeignKey("users.login", ondelete="CASCADE"))
@@ -108,15 +111,37 @@ class Payment(Base):
 
 # ===== Пароли: храним не сам пароль, а его хеш =====
 
+PBKDF2_ITERATIONS = 600_000  # столько рекомендует OWASP для PBKDF2-SHA256
+
+
 def hash_password(password):
-    salt = secrets.token_hex(8)
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
-    return salt + "$" + digest
+    """Формат: pbkdf2_sha256$итерации$соль$хеш"""
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), PBKDF2_ITERATIONS).hex()
+    return f"pbkdf2_sha256${PBKDF2_ITERATIONS}${salt}${digest}"
 
 
 def check_password(password, stored):
-    salt, digest = stored.split("$", 1)
-    return hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex() == digest
+    """Сравнение за постоянное время (hmac.compare_digest), чтобы по скорости ответа нельзя было подбирать хеш.
+    Понимает и старый формат «соль$хеш» со 100 000 итераций"""
+    parts = stored.split("$")
+    if len(parts) == 4:
+        _, iterations, salt, digest = parts
+        iterations = int(iterations)
+    else:
+        salt, digest = parts
+        iterations = 100_000
+    computed = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), iterations).hex()
+    return hmac.compare_digest(computed, digest)
+
+
+def needs_rehash(stored):
+    """Старый хеш — пересчитаем при следующем входе"""
+    return not stored.startswith(f"pbkdf2_sha256${PBKDF2_ITERATIONS}$")
+
+
+def token_hash(token):
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 # ===== Создание таблиц и демо-данных =====
@@ -128,6 +153,7 @@ NEW_COLUMNS = [
     ("profiles", "university", "VARCHAR(80)"),
     ("profiles", "updated_at", "TIMESTAMP"),
     ("payments", "yk_id", "VARCHAR(64)"),
+    ("users", "consent_at", "TIMESTAMP"),
 ]
 
 
@@ -135,7 +161,7 @@ def migrate():
     """Обновляем уже существующую базу без потери данных:
     добавляем новые столбцы и дописываем ответы на новые вопросы."""
     inspector = inspect(engine)
-    existing = {(t, c["name"]) for t in ("profiles", "payments") for c in inspector.get_columns(t)}
+    existing = {(t, c["name"]) for t in ("profiles", "payments", "users") for c in inspector.get_columns(t)}
     with engine.begin() as conn:
         for table, column, sql_type in NEW_COLUMNS:
             if (table, column) not in existing:

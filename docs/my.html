@@ -6,7 +6,7 @@
   <title>Мои отметки — Соседи</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/style.css?v=5">
 </head>
 <body>
 
@@ -103,7 +103,20 @@
         </section>
       </div>
 
-      <button type="button" class="btn btn--light logout-btn" id="logout-btn">Выйти</button>
+      <div class="account-actions">
+        <button type="button" class="btn btn--light" id="logout-btn">Выйти</button>
+        <button type="button" class="btn btn--danger" id="delete-account-btn">Удалить аккаунт</button>
+      </div>
+      <form class="confirm account-delete" id="delete-account-form" hidden>
+        <p><b>Удалить аккаунт навсегда?</b></p>
+        <p>Пропадут анкета, фото, отметки и подписка. Вернуть их не получится. Чтобы подтвердить, введи пароль.</p>
+        <label class="field">Пароль<input type="password" id="delete-password" autocomplete="current-password" maxlength="128"></label>
+        <p class="form-error" id="delete-error" hidden></p>
+        <div class="confirm__buttons">
+          <button type="submit" class="btn btn--red">Удалить навсегда</button>
+          <button type="button" class="btn btn--light" id="delete-cancel">Отмена</button>
+        </div>
+      </form>
     </div>
   </main>
 
@@ -123,8 +136,8 @@
     </div>
   </footer>
 
-  <script src="js/api.js?v=4"></script>
-  <script src="js/main.js?v=4"></script>
-  <script src="js/my.js?v=4"></script>
+  <script src="js/api.js?v=5"></script>
+  <script src="js/main.js?v=5"></script>
+  <script src="js/my.js?v=5"></script>
 </body>
 </html>

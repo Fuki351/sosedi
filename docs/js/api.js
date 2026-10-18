@@ -9,6 +9,11 @@ function getName() {
 }
 
 function logout() {
+  // просим сервер закрыть сессию, чтобы украденный токен тоже перестал работать
+  const token = localStorage.getItem('token');
+  if (token) {
+    fetch('/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, keepalive: true }).catch(function () {});
+  }
   localStorage.removeItem('token');
   localStorage.removeItem('name');
 }

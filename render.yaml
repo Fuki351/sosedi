@@ -12,6 +12,8 @@ services:
         value: 3.12.7
       - key: TZ
         value: Europe/Moscow
+      - key: PUBLIC_URL
+        value: https://sosedi.onrender.com   # куда ЮKassa возвращает после оплаты
       - key: DATABASE_URL
         sync: false   # адрес базы Neon вставляем руками в настройках Render
       - key: YOOKASSA_SHOP_ID

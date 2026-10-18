@@ -51,7 +51,7 @@ loginForm.addEventListener('submit', async function (event) {
   }
 
   const result = mode === 'register'
-    ? await api('/register', { method: 'POST', body: { login: login, password: password, name: name } })
+    ? await api('/register', { method: 'POST', body: { login: login, password: password, name: name, consent: true } })
     : await api('/login', { method: 'POST', body: { login: login, password: password } });
 
   if (!result.ok) {

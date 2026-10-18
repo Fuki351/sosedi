@@ -2555,3 +2555,15 @@ label.btn input[type="file"] {
 .contacts-grid .my-card {
   grid-column: auto;
 }
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.account-delete {
+  max-width: 480px;
+  margin-top: 16px;
+}
