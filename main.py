@@ -795,4 +795,14 @@ def create_report(body: ReportIn, authorization: str = Header(None), s=Depends(g
 
 # ============ Сайт ============
 # Папка docs — это наш фронт. Открывается по адресу /site/
+@app.middleware("http")
+async def no_stale_site(request, call_next):
+    """Страницы, скрипты и стили сайта браузер каждый раз сверяет с сервером,
+    чтобы после обновления никто не сидел со старой версией из кэша"""
+    response = await call_next(request)
+    if request.url.path.startswith("/site"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 app.mount("/site", StaticFiles(directory="docs", html=True), name="site")
