@@ -122,21 +122,22 @@ def photo_url(p):
 
 # ============ Шаг 5. Бизнес-логика: сервер считает сам ============
 
+def pair_score(i, a, b):
+    """Балл за вопрос i, если один ответил a, другой — b (таблицы в data.COMPATIBILITY)"""
+    return data.COMPATIBILITY[i][a][b]
+
+
 def compatibility(answers_a, answers_b):
     """Процент совместимости.
-    Одинаковый ответ — 1 балл, соседний вариант — 0,5, противоположный — 0.
-    Сумму делим на 9 и переводим в проценты."""
+    По каждому вопросу берём балл из таблицы совместимости: 1 — уживётесь, 0.5–0.75 — похоже,
+    договоритесь, 0 — конфликт. Сумму делим на число вопросов, где ответили оба, и переводим в проценты."""
     score = 0
     count = 0
-    for a, b in zip(answers_a, answers_b):
+    for i, (a, b) in enumerate(zip(answers_a, answers_b)):
         if a is None or b is None:
             continue  # на этот вопрос кто-то ещё не ответил — не учитываем
         count += 1
-        diff = abs(a - b)
-        if diff == 0:
-            score += 1
-        elif diff == 1:
-            score += 0.5
+        score += pair_score(i, a, b)
     if count == 0:
         return 0
     return round(score / count * 100)
@@ -150,8 +151,8 @@ def compare(answers_me, answers_other):
             break
         if answers_me[i] is None or answers_other[i] is None:
             continue
-        diff = abs(answers_me[i] - answers_other[i])
-        result = "yes" if diff == 0 else ("part" if diff == 1 else "no")
+        points = pair_score(i, answers_me[i], answers_other[i])
+        result = "yes" if points == 1 else ("part" if points >= 0.5 else "no")
         rows.append({
             "question": question,
             "me": data.ANSWERS[i][answers_me[i]],

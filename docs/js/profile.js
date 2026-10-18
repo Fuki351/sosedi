@@ -146,7 +146,7 @@ function showMutual(telegram) {
   setText('p-telegram', telegram);
 }
 
-const resultText = { yes: 'Совпадает', part: 'Похоже', no: 'Разное' };
+const resultText = { yes: 'Подходит', part: 'Похоже', no: 'Конфликт' };
 
 function showCompare(match, rows) {
   setText('match-percent', match + '%');
@@ -169,7 +169,7 @@ function showCompare(match, rows) {
       </tr>`;
   });
   document.getElementById('compare-rows').innerHTML = html;
-  setText('match-summary', 'Совпадает: ' + yes + ' · Похоже: ' + part + ' · Разное: ' + no);
+  setText('match-summary', 'Подходит: ' + yes + ' · Похоже: ' + part + ' · Конфликт: ' + no);
   document.getElementById('match-block').hidden = false;
 }
 
