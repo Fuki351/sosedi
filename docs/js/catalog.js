@@ -1,7 +1,7 @@
 // Каталог анкет: загружаем список с сервера, фильтры, кнопка «Показать ещё»
 
 let people = []; // то, что пришло с сервера
-let shown = 6;   // сколько карточек показываем сейчас
+let shown = 12;   // сколько карточек показываем сейчас
 
 const cardsList = document.getElementById('cards');
 const countText = document.getElementById('count');
@@ -131,7 +131,7 @@ function render() {
 
 // при любом изменении фильтров заново спрашиваем сервер
 function reload() {
-  shown = 6;
+  shown = 12;
   loadPeople();
 }
 
@@ -155,7 +155,7 @@ minMatch.addEventListener('input', function () {
 minMatch.addEventListener('change', reload);
 
 moreBtn.addEventListener('click', function () {
-  shown += 3;
+  shown += 12;
   render();
 });
 
@@ -198,9 +198,6 @@ async function start() {
     const me = await api('/me');
     if (me.ok && me.data.profile_id !== null) {
       document.getElementById('match-filter').hidden = false;
-      if (me.data.seek_gender === 'm' || me.data.seek_gender === 'f') {
-        document.querySelector('input[name="gender"][value="' + me.data.seek_gender + '"]').checked = true;
-      }
       if (me.data.profile_incomplete) {
         const hint = document.getElementById('login-hint');
         hint.innerHTML = 'В анкете появились новые вопросы. <a href="anketa.html?edit=1">Дополни анкету</a>, чтобы тебя находили через фильтры.';

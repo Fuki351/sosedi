@@ -368,7 +368,8 @@ def list_profiles(housing: str = "all", budget: str = "any",
     if budget != "any":
         query = query.where(Profile.budget == budget)
     if gender in ("m", "f"):
-        query = query.where(Profile.gender == gender)
+        # анкеты, где пол ещё не указан (старые), тоже показываем — чтобы не терять живых людей
+        query = query.where(or_(Profile.gender == gender, Profile.gender.is_(None)))
     courses = [int(c) for c in course.split(",") if c.strip().isdigit()]
     if courses:
         query = query.where(Profile.course.in_(courses))
@@ -399,9 +400,6 @@ def list_profiles(housing: str = "all", budget: str = "any",
             continue
         if quiet and not has_answer(p, 4, [0, 1]):
             continue
-        # не показываем тех, кто ищет соседа другого пола, чем я
-        if my is not None and my.gender and p.seek_gender in ("m", "f") and p.seek_gender != my.gender:
-            continue
         card = short_card(p, my, premium_set)
         if min_match and card["match"] is not None and card["match"] < min_match:
             continue
@@ -415,7 +413,8 @@ def list_profiles(housing: str = "all", budget: str = "any",
         result.sort(key=lambda c: BUDGET_ORDER.get(c["budget"], 9))
     else:
         result.sort(key=lambda c: c["match"] or 0, reverse=True)
-    result.sort(key=lambda c: c["premium"], reverse=True)  # сортировка устойчивая: порядок внутри сохранится
+    result.sort(key=lambda c: c["demo"])  # живые анкеты выше примеров (сортировка устойчивая, порядок внутри сохранится)
+    result.sort(key=lambda c: c["premium"], reverse=True)  # а «Соседи+» — выше всех
     return result
 
 
