@@ -3,14 +3,18 @@
 Бэкенд для сайта «Соседи» (подбор соседа для совместной аренды жилья).
 Команда 007, проект «Первый БИТ».
 
+| | |
+|---|---|
+| 🌐 **Сайт** | [sosedi.onrender.com/site](https://sosedi.onrender.com/site/) |
+| 💬 **Telegram (поддержка и оплата)** | [@Fuki_0202](https://t.me/Fuki_0202) |
+| 💻 **Код** | [github.com/Fuki351/sosedi](https://github.com/Fuki351/sosedi) |
+
 - **Язык:** Python 3.10+
 - **Фреймворк:** FastAPI, запуск через Uvicorn
 - **База данных:** SQLAlchemy. Локально — файл `sosedi.db` (SQLite, создаётся сам), на хостинге — PostgreSQL (Neon) по адресу из переменной `DATABASE_URL`
 - **Фото анкет:** загружаются с устройства, сервер обрезает их в квадрат 640×640 и хранит в базе
-- **Монетизация:** подписка «Соседи+» (демо-оплата)
+- **Монетизация:** подписка «Соседи+», оплата через ЮKassa
 - **Фронт:** лежит в папке `docs`, сервер отдаёт его по адресу `/site/`
-
-**Общая ссылка на сайт:** https://sosedi.onrender.com/site/
 
 ## Как запустить
 
@@ -18,7 +22,7 @@
 
 Скачать проект: на странице репозитория зелёная кнопка **Code → Download ZIP**, распаковать. Или `git clone https://github.com/Fuki351/sosedi.git`
 
-Сайт без сервера (только страницы): https://fuki351.github.io/sosedi/
+Сайт без сервера (только страницы): [fuki351.github.io/sosedi](https://fuki351.github.io/sosedi/)
 
 ```bash
 # 1. перейти в папку проекта (после ZIP она называется sosedi-main)
@@ -147,7 +151,7 @@ sosedi/
 1. **Neon** (neon.tech) → New Project → скопировать адрес подключения `postgresql://...`
 2. **Render** (render.com) → войти через GitHub → New → Blueprint → выбрать репозиторий `sosedi`. Render сам прочитает `render.yaml`
 3. В поле `DATABASE_URL` вставить адрес из Neon → Apply
-4. Через пару минут сайт будет по адресу https://sosedi.onrender.com/site/
+4. Через пару минут сайт будет по адресу [sosedi.onrender.com/site](https://sosedi.onrender.com/site/)
 
 На бесплатном тарифе Render сервер засыпает, если на сайт 15 минут никто не заходит. Первое открытие после этого занимает около минуты.
 
